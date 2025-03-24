@@ -35,7 +35,7 @@ func NewConnection(appConfig *config.Config, appLogger logger.Logger) (*gorm.DB,
 	sqlLogger := logger.NewSQLLogger(&logger.Config{
 		LogLevel:      appConfig.LogLevel,
 		LogDirectory:  appConfig.LogDirectory,
-		EnableConsole: appConfig.EnableConsole,
+		EnableConsoleLog: appConfig.EnableConsoleLog,
 		EnableSQLLog:  appConfig.EnableSQLLog,
 	}, appLogger)
 

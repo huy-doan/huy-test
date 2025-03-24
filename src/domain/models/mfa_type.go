@@ -1,18 +1,13 @@
 package models
 
-import (
-	"time"
-)
-
 // MFAType represents a multi-factor authentication type
 type MFAType struct {
-	ID        int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	No        int       `json:"no" gorm:"type:int;not null"`
-	Title     string    `json:"title" gorm:"type:varchar(255);not null"`
-	IsActive  int       `json:"is_active" gorm:"type:int;not null"`
-	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
+	ID int `json:"id"`
+	BaseColumnTimestamp
+
+	No       int    `json:"no"`
+	Title    string `json:"title"`
+	IsActive int    `json:"is_active"`
 }
 
 // TableName specifies the database table name

@@ -34,14 +34,14 @@ func NewSQLLogger(config *Config, traceLogger Logger) logger.Interface {
 	if err := os.MkdirAll(config.LogDirectory, 0755); err != nil {
 		panic(fmt.Sprintf("Failed to create log directory: %v", err))
 	}
-	
+
 	// Configure DB log file
 	dbLogPath := filepath.Join(config.LogDirectory, "db-backend.log")
 	file, err := os.OpenFile(dbLogPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to open db log file: %v", err))
 	}
-	
+
 	// Set output destination
 	sqlLogger.SetOutput(file)
 

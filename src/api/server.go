@@ -15,6 +15,7 @@ import (
 	httpAPI "github.com/vnlab/makeshop-payment/src/api/http"
 	"github.com/vnlab/makeshop-payment/src/domain/repositories"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
 	"github.com/vnlab/makeshop-payment/src/lib/validator"
 	"github.com/vnlab/makeshop-payment/src/usecase"
 )
@@ -31,6 +32,7 @@ type Server struct {
 func NewServer(
 	userRepo repositories.UserRepository,
 	roleRepo repositories.RoleRepository,
+	appLogger logger.Logger,
 ) *Server {
 	// Set Gin mode
 	ginMode := os.Getenv("GIN_MODE")
@@ -59,6 +61,7 @@ func NewServer(
 		router,  // This router instance is created but never assigned to the Server struct
 		userUsecase,
 		jwtService,
+		appLogger,
 	)
 
 	// Create HTTP server

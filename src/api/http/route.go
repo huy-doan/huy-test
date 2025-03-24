@@ -17,7 +17,7 @@ func SetupRouter(
 ) *gin.Engine {
 	// Configure CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{os.Getenv("API_FRONT_URL")}
+	config.AllowOrigins = []string{os.Getenv("FRONT_URL")}
 	config.AllowCredentials = true
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	router.Use(cors.New(config))

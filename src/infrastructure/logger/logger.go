@@ -1,10 +1,13 @@
 // src/infrastructure/logger/logger.go
+
 package logger
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +28,9 @@ const (
 	ERROR LogLevel = "error"
 )
 
+// TraceIDKey is the context key for trace ID
+const TraceIDKey = "trace_id"
+
 // Logger is the custom structured logger interface
 type Logger interface {
 	Debug(msg string, fields map[string]interface{})
@@ -33,19 +39,23 @@ type Logger interface {
 	Error(msg string, fields map[string]interface{})
 	WithTraceID(traceID string) Logger
 	GetTraceID() string
+	WithField(key string, value interface{}) Logger
+	WithFields(fields map[string]interface{}) Logger
 }
 
 // loggerImpl is the implementation of Logger interface
 type loggerImpl struct {
-	logger  *logrus.Logger
-	traceID string
+	logger     *logrus.Logger
+	traceID    string
+	extraFields map[string]interface{}
+	fileMutex  sync.Mutex
 }
 
 // Config holds the configuration for logger
 type Config struct {
 	LogLevel      string
-	LogDirectory   string
-	EnableConsole bool
+	LogDirectory  string
+	EnableConsoleLog bool
 	EnableSQLLog  bool
 }
 
@@ -59,12 +69,13 @@ func NewLogger(config *Config) Logger {
 		level = logrus.InfoLevel
 	}
 	logger.SetLevel(level)
+	fmt.Printf("config.LogDirectory: %v\n", config.LogDirectory)
 
 	// Ensure log directory exists
-	logDir := filepath.Dir(config.LogDirectory)
-	err = os.MkdirAll(logDir, 0755)
+	err = os.MkdirAll(config.LogDirectory, 0755)
 	if err != nil {
-		panic(err)
+		// If we can't create the directory, log to stderr and keep going
+		logger.WithField("error", err.Error()).Error("Failed to create log directory, logging to stderr")
 	}
 
 	// Configure JSON formatter for structured logging
@@ -73,15 +84,16 @@ func NewLogger(config *Config) Logger {
 	})
 	
 	// We'll handle different log levels in our custom methods
-	if config.EnableConsole {
+	if config.EnableConsoleLog {
 		logger.SetOutput(os.Stdout)
 	} else {
 		logger.SetOutput(io.Discard) // Discard default output as we'll use level-specific files
 	}
 
 	return &loggerImpl{
-		logger:  logger,
-		traceID: GenerateTraceID(),
+		logger:     logger,
+		traceID:    GenerateTraceID(),
+		extraFields: make(map[string]interface{}),
 	}
 }
 
@@ -92,10 +104,58 @@ func GenerateTraceID() string {
 
 // WithTraceID creates a new logger instance with the specified trace ID
 func (l *loggerImpl) WithTraceID(traceID string) Logger {
-	return &loggerImpl{
-		logger:  l.logger,
-		traceID: traceID,
+	newLogger := &loggerImpl{
+		logger:     l.logger,
+		traceID:    traceID,
+		extraFields: make(map[string]interface{}),
 	}
+	
+	// Copy extra fields
+	for k, v := range l.extraFields {
+		newLogger.extraFields[k] = v
+	}
+	
+	return newLogger
+}
+
+// WithField adds a field to the logger
+func (l *loggerImpl) WithField(key string, value interface{}) Logger {
+	newLogger := &loggerImpl{
+		logger:     l.logger,
+		traceID:    l.traceID,
+		extraFields: make(map[string]interface{}),
+	}
+	
+	// Copy existing extra fields
+	for k, v := range l.extraFields {
+		newLogger.extraFields[k] = v
+	}
+	
+	// Add new field
+	newLogger.extraFields[key] = value
+	
+	return newLogger
+}
+
+// WithFields adds multiple fields to the logger
+func (l *loggerImpl) WithFields(fields map[string]interface{}) Logger {
+	newLogger := &loggerImpl{
+		logger:     l.logger,
+		traceID:    l.traceID,
+		extraFields: make(map[string]interface{}),
+	}
+	
+	// Copy existing extra fields
+	for k, v := range l.extraFields {
+		newLogger.extraFields[k] = v
+	}
+	
+	// Add new fields
+	for k, v := range fields {
+		newLogger.extraFields[k] = v
+	}
+	
+	return newLogger
 }
 
 // GetTraceID returns the current trace ID
@@ -109,16 +169,31 @@ func (l *loggerImpl) makeFields(fields map[string]interface{}) logrus.Fields {
 		fields = make(map[string]interface{})
 	}
 	
-	fields["trace_id"] = l.traceID
+	// Add trace ID and timestamp
+	fields[TraceIDKey] = l.traceID
 	fields["timestamp"] = time.Now().UTC().Format(time.RFC3339)
+	
+	// Add extra fields
+	for k, v := range l.extraFields {
+		fields[k] = v
+	}
 	
 	return logrus.Fields(fields)
 }
 
 // getLogFile returns the appropriate log file for the given level
 func (l *loggerImpl) getLogFile(level logrus.Level) *os.File {
+	// Lock for file operations
+	l.fileMutex.Lock()
+	defer l.fileMutex.Unlock()
+	
 	var logPath string
-	logDir := filepath.Dir(l.logger.Out.(*os.File).Name())
+	logDir := filepath.Dir(os.Stdout.Name()) // Default to current directory
+	fmt.Printf("LogDir: %v\n", logDir)
+	fmt.Printf("logPath: %v\n", logPath)
+	if logger, ok := l.logger.Out.(*os.File); ok {
+		logDir = filepath.Dir(logger.Name())
+	}
 	
 	switch level {
 	case logrus.DebugLevel:
@@ -132,14 +207,15 @@ func (l *loggerImpl) getLogFile(level logrus.Level) *os.File {
 	default:
 		logPath = filepath.Join(logDir, "app.log")
 	}
-	
+	fmt.Printf("logPath: %v\n", logPath)
+
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		// If we can't open the log file, fallback to stdout
+		// If we can't open the log file, log the error and fallback to stdout
 		l.logger.WithField("error", err.Error()).Error("Failed to open log file")
 		return os.Stdout
 	}
-	
+
 	return file
 }
 
@@ -148,11 +224,11 @@ func (l *loggerImpl) logToFile(level logrus.Level, entry *logrus.Entry) {
 	if !l.logger.IsLevelEnabled(level) {
 		return
 	}
-	
 	// Get the appropriate file for this log level
 	file := l.getLogFile(level)
 	defer file.Close()
-	
+	fmt.Printf("Logging to file: %v\n", file)
+
 	// Create a new logger for this specific write
 	fileLogger := logrus.New()
 	fileLogger.SetOutput(file)
@@ -160,17 +236,17 @@ func (l *loggerImpl) logToFile(level logrus.Level, entry *logrus.Entry) {
 		TimestampFormat: time.RFC3339,
 	})
 	fileLogger.SetLevel(level)
-	
+
 	// Write the log entry to the file
 	switch level {
-	case logrus.DebugLevel:
-		fileLogger.WithFields(entry.Data).Debug(entry.Message)
-	case logrus.InfoLevel:
-		fileLogger.WithFields(entry.Data).Info(entry.Message)
-	case logrus.WarnLevel:
-		fileLogger.WithFields(entry.Data).Warn(entry.Message)
-	case logrus.ErrorLevel:
-		fileLogger.WithFields(entry.Data).Error(entry.Message)
+		case logrus.DebugLevel:
+			fileLogger.WithFields(entry.Data).Debug(entry.Message)
+		case logrus.InfoLevel:
+			fileLogger.WithFields(entry.Data).Info(entry.Message)
+		case logrus.WarnLevel:
+			fileLogger.WithFields(entry.Data).Warn(entry.Message)
+		case logrus.ErrorLevel:
+			fileLogger.WithFields(entry.Data).Error(entry.Message)
 	}
 }
 

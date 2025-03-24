@@ -9,22 +9,21 @@ import (
 
 // User represents a user entity in the system
 type User struct {
-	ID            int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	Email         string    `json:"email" gorm:"type:varchar(255);uniqueIndex"`
-	PasswordHash  string    `json:"-" gorm:"column:password_hash;type:varchar(255)"` // Never exposed in JSON
-	RoleID        int       `json:"role_id" gorm:"type:int;not null"`
-	Role          *Role     `json:"role" gorm:"foreignKey:RoleID"`
-	EnabledMFA    bool      `json:"enabled_mfa" gorm:"type:tinyint(1);default:1"`
-	MFATypeID     *int      `json:"mfa_type_id" gorm:"type:int"`
-	MFAType       *MFAType  `json:"mfa_type" gorm:"foreignKey:MFATypeID"`
-	LastName      string    `json:"last_name" gorm:"type:varchar(100);not null"`
-	FirstName     string    `json:"first_name" gorm:"type:varchar(100);not null"`
-	LastNameKana  string    `json:"last_name_kana" gorm:"type:varchar(100);not null"`
-	FirstNameKana string    `json:"first_name_kana" gorm:"type:varchar(100);not null"`
-	AvatarURL     *string   `json:"avatar_url,omitempty" gorm:"type:varchar(255)"`
-	CreatedAt     time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt     time.Time `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt     *time.Time `json:"deleted_at,omitempty" gorm:"index"`
+	ID int `json:"id"`
+	BaseColumnTimestamp
+
+	Email         string   `json:"email"`
+	PasswordHash  string   `json:"-"` // Never exposed in JSON
+	RoleID        int      `json:"role_id"`
+	Role          *Role    `json:"role"`
+	EnabledMFA    bool     `json:"enabled_mfa"`
+	MFATypeID     *int     `json:"mfa_type_id"`
+	MFAType       *MFAType `json:"mfa_type"`
+	LastName      string   `json:"last_name"`
+	FirstName     string   `json:"first_name"`
+	LastNameKana  string   `json:"last_name_kana"`
+	FirstNameKana string   `json:"first_name_kana"`
+	AvatarURL     *string  `json:"avatar_url,omitempty"`
 }
 
 // TableName specifies the database table name

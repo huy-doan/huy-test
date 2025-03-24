@@ -48,7 +48,7 @@ func main() {
 	appLogger := logger.NewLogger(&logger.Config{
 		LogLevel:      appConfig.LogLevel,
 		LogDirectory:  appConfig.LogDirectory,
-		EnableConsole: appConfig.EnableConsole,
+		EnableConsoleLog: appConfig.EnableConsoleLog,
 		EnableSQLLog:  appConfig.EnableSQLLog,
 	})
 
@@ -69,7 +69,8 @@ func main() {
 	roleRepo := repositories.NewRoleRepository(db)
 
 	// Create and start API server
-	server := api.NewServer(userRepo, roleRepo)
+	server := api.NewServer(userRepo, roleRepo, appLogger)
+
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

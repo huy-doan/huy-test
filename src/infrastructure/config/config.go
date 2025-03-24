@@ -1,14 +1,18 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 // Config holds all the configuration for the application
 type Config struct {
+	GinMode string // Gin mode for the server
+
 	// Server configuration
 	ServerHost string
 	ServerPort string
@@ -20,13 +24,13 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	
-	GinMode string // Gin mode for the server
 
 	// Logger configuration
-	LogLevel      string
+	LogLevel      string // Log level for application logs
 	LogDirectory  string // Directory where log files will be stored
-	EnableConsole bool   // Whether to also log to console
+	EnableConsoleLog bool   // Whether to also log to console
 	EnableSQLLog  bool   // Whether to log SQL queries
+	SqlLogLevel   string // Log level for SQL queries
 
 	// Authentication configuration
 	JWTSecret   string
@@ -38,15 +42,21 @@ func LoadConfig() *Config {
 	// Load .env file if it exists
 	godotenv.Load()
 	
+	sqlLogLevel := "warn"
+	if os.Getenv("GIN_MODE") != gin.ReleaseMode {
+		sqlLogLevel = "info"
+	}		
+
 	// Set default values
 	config := &Config{
-		ServerHost:    "0.0.0.0",
-		ServerPort:    "8080",
-		LogLevel:      "info",
-		LogDirectory:  "./logs",
-		EnableConsole: true,
-		EnableSQLLog:  false,
-		JWTDuration:   24, // Hours
+		ServerHost:       "0.0.0.0",
+		ServerPort:       "8080",
+		LogLevel: 	      "warn",
+		LogDirectory:     "/app/logs",
+		EnableConsoleLog: true,
+		EnableSQLLog:     false,
+		SqlLogLevel:	  sqlLogLevel,
+		JWTDuration:      24, // Hours
 	}
 	
 	// Map of environment variables to configuration fields
@@ -60,6 +70,7 @@ func LoadConfig() *Config {
 		"DB_PASSWORD":    &config.DBPassword,
 		"DB_NAME":        &config.DBName,
 		"LOG_LEVEL":      &config.LogLevel,
+		"SQL_LOG_LEVEL":  &config.SqlLogLevel,
 		"LOG_DIRECTORY":  &config.LogDirectory,
 		"JWT_SECRET":     &config.JWTSecret,
 	}
@@ -73,7 +84,7 @@ func LoadConfig() *Config {
 
 	// Override boolean fields
 	boolVars := map[string]*bool{
-		"ENABLE_CONSOLE": &config.EnableConsole,
+		"ENABLE_CONSOLE_LOG": &config.EnableConsoleLog,
 		"ENABLE_SQL_LOG": &config.EnableSQLLog,
 	}
 	for env, field := range boolVars {
@@ -91,15 +102,6 @@ func LoadConfig() *Config {
 			config.JWTDuration = duration
 		}
 	}
+	fmt.Printf("config: %v\n", config)
 	return config
-}
-
-// GetLoggerConfig returns logger configuration
-func (c *Config) GetLoggerConfig() map[string]interface{} {
-	return map[string]interface{}{
-		"log_level":       c.LogLevel,
-		"log_directory":   c.LogDirectory,
-		"enable_console":  c.EnableConsole,
-		"enable_sql_log":  c.EnableSQLLog,
-	}
 }
