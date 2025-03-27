@@ -2,6 +2,7 @@ package validator
 
 import (
 	"reflect"
+	"regexp"
 	"sync"
 
 	"github.com/gin-gonic/gin/binding"
@@ -23,7 +24,10 @@ func (v *CustomValidator) Init() {
 		// Add any custom validations here
 		// For example:
 		// v.validate.RegisterValidation("custom_rule", customRuleFunc)
-		
+		// Add kana validation
+		v.validate.RegisterValidation("kana", validateKana)
+
+
 		// Use JSON tag names for validation errors
 		v.validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 			name := fld.Tag.Get("json")
@@ -50,4 +54,21 @@ func (v *CustomValidator) ValidateStruct(obj interface{}) error {
 // Setup sets up the validator for Gin
 func Setup() {
 	binding.Validator = &CustomValidator{}
+}
+
+// GetValidate returns the validator engine
+func GetValidate() *validator.Validate {
+	v := &CustomValidator{}
+	v.Init()
+	return v.validate
+}
+
+func validateKana(fl validator.FieldLevel) bool {
+	kanaStr := fl.Field().String()
+	if kanaStr == "" {
+		return true
+	}
+
+	kanaPattern := regexp.MustCompile(`^[0-9０-９ァ-ヶｦ-ﾟー]+$`)
+	return kanaPattern.MatchString(kanaStr)
 }

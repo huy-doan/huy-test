@@ -2,66 +2,83 @@ package mysql
 
 import (
 	"fmt"
+	"log"
 	"net/url"
+	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"gorm.io/gorm/logger"
 )
-
 const (
-	CONN_MAX_LIFETIME = time.Minute * 10
-	MAX_IDLE_CONNS    = 500
-	MAX_OPEN_CONNS    = 250
+	CONN_MAX_LIFETIME            = time.Minute * 10
+	MAX_IDLE_CONNS               = 500
+	MAX_OPEN_CONNS               = 250
 )
 
 // NewConnection creates a new MySQL database connection using GORM
-func NewConnection(appLogger logger.Logger) (*gorm.DB, error) {
-	appConfig := config.GetConfig()
-	dbHost     := appConfig.DBHost
-	dbPort     := appConfig.DBPort
-	dbUser     := appConfig.DBUser
-	dbPassword := appConfig.DBPassword
-	dbName     := appConfig.DBName
+func NewConnection() (*gorm.DB, error) {
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
 
-	// Configure connection string with Tokyo timezone
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+	if dbPort == "" {
+		dbPort = "3306"
+	}
+	if dbUser == "" {
+		dbUser = "apiuser"
+	}
+	if dbPassword == "" {
+		dbPassword = "apipassword"
+	}
+	if dbName == "" {
+		dbName = "msp-db-dev"
+	}
 	loc := url.QueryEscape("Asia/Tokyo")
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=%s",
 		dbUser, dbPassword, dbHost, dbPort, dbName, loc)
 
-	// Create SQL logger that integrates with our custom logger
-	sqlLogger := logger.NewSQLLogger(&logger.Config{
-		LogLevel:      appConfig.SqlLogLevel,
-		LogDirectory:  appConfig.LogDirectory,
-		EnableConsoleLog: appConfig.EnableConsoleLog,
-		EnableSQLLog:  appConfig.EnableSQLLog,
-	}, appLogger)
+	// Configure GORM logger
+	file, err := os.OpenFile("/app/logs/db-backend.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
 
-	// Open database connection with our custom SQL logger
+	logLevel := logger.Warn
+	if os.Getenv("GIN_MODE") != gin.ReleaseMode {
+		logLevel = logger.Info
+	}
+
+	newLogger := logger.New(
+		log.New(file, "\r\n", log.LstdFlags), // Thay thế logger.Writer
+		logger.Config{
+			SlowThreshold:             time.Second,
+			LogLevel:                  logLevel,
+			IgnoreRecordNotFoundError: true,
+			ParameterizedQueries:      true,
+			Colorful:                  false,
+		},
+	)
+
+	// Open database connection
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: sqlLogger,
+		Logger: newLogger,
 	})
 
 	if err != nil {
-		appLogger.Error("Failed to connect to database", map[string]interface{}{
-			"error": err.Error(),
-			"host":  dbHost,
-			"port":  dbPort,
-			"user":  dbUser,
-			"name":  dbName,
-		})
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Configure connection pool
 	sqlDB, err := db.DB()
 	if err != nil {
-		appLogger.Error("Failed to get SQL DB handle", map[string]interface{}{
-			"error": err.Error(),
-		})
 		return nil, fmt.Errorf("failed to get SQL DB: %w", err)
 	}
 

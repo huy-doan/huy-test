@@ -1,3 +1,4 @@
+// src/api/server.go - cập nhật
 package api
 
 import (
@@ -11,33 +12,26 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vnlab/makeshop-payment/src/api/graphql"
 	httpAPI "github.com/vnlab/makeshop-payment/src/api/http"
 	"github.com/vnlab/makeshop-payment/src/domain/repositories"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
 	"github.com/vnlab/makeshop-payment/src/lib/validator"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 // Server represents the API server
 type Server struct {
-	router         *gin.Engine
-	httpServer     *http.Server
-	jwtService     *auth.JWTService
-	userUsecase    *usecase.UserUsecase
+	router     *gin.Engine
+	httpServer *http.Server
+	jwtService *auth.JWTService
 }
 
 // NewServer creates a new API server
 func NewServer(
 	userRepo repositories.UserRepository,
 	roleRepo repositories.RoleRepository,
-	appLogger logger.Logger,
 ) *Server {
-	appConfig := config.GetConfig()
 	// Set Gin mode
-	ginMode := appConfig.GinMode
+	ginMode := os.Getenv("GIN_MODE")
 	if ginMode != "" {
 		gin.SetMode(ginMode)
 	}
@@ -50,20 +44,13 @@ func NewServer(
 
 	// Initialize services
 	jwtService := auth.NewJWTService()
-	userUsecase := usecase.NewUserUseCase(userRepo, roleRepo, jwtService)
 
 	// Set up HTTP routes
 	router = httpAPI.SetupRouter(
 		router,
+		userRepo,
+		roleRepo,
 		jwtService,
-	)
-
-	// Set up GraphQL
-	graphql.SetupGraphQL(
-		router,
-		userUsecase,
-		jwtService,
-		appLogger,
 	)
 
 	// Create HTTP server
@@ -78,18 +65,14 @@ func NewServer(
 	}
 
 	return &Server{
-		router:         router,
-		httpServer:     httpServer,
-		jwtService:     jwtService,
-		userUsecase:    userUsecase,
+		router:     router,
+		httpServer: httpServer,
+		jwtService: jwtService,
 	}
 }
 
 // Start starts the API server
 func (s *Server) Start() error {
-	// Get the global logger
-	appLogger := logger.GetLogger()
-	
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -98,27 +81,16 @@ func (s *Server) Start() error {
 		<-quit
 		log.Println("Shutting down server...")
 
-		// Log shutdown with the application logger
-		appLogger.Info("Shutting down server gracefully", nil)
-
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if err := s.httpServer.Shutdown(ctx); err != nil {
-			appLogger.Error("Server forced to shutdown", map[string]interface{}{
-				"error": err.Error(),
-			})
+			log.Fatalf("Server forced to shutdown: %v", err)
 		}
 	}()
 
-	appLogger.Info("Server starting", map[string]interface{}{
-		"address": s.httpServer.Addr,
-	})
-
+	log.Printf("Server starting on %s", s.httpServer.Addr)
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		appLogger.Error("Server failed to start", map[string]interface{}{
-			"error": err.Error(),
-		})
 		return err
 	}
 

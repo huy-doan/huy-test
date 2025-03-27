@@ -6,7 +6,6 @@ import (
 	"github.com/vnlab/makeshop-payment/src/api/graphql/middleware"
 	"github.com/vnlab/makeshop-payment/src/api/http/handlers"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
 	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
@@ -15,11 +14,9 @@ func SetupGraphQL(
 	router *gin.Engine,
 	userUsecase *usecase.UserUsecase,
 	jwtService *auth.JWTService,
-	appLogger logger.Logger,
 ) {
-	// Set up middleware for GraphQL
-	authMiddleware := middleware.GraphQLAuthMiddleware(jwtService)
-	loggerMiddleware := middleware.GraphQLLoggerMiddleware()
+	// Set up authentication middleware for GraphQL
+	graphAuthMiddleware := middleware.GraphQLAuthMiddleware(jwtService)
 
 	// Initialize GraphQL handler
 	graphHandler := handlers.NewGraphHandler(userUsecase, jwtService)
@@ -28,9 +25,9 @@ func SetupGraphQL(
 	v1 := router.Group("/api/v1")
 	{
 		graphqlRoute := v1.Group("/graphql")
-		graphqlRoute.Use(loggerMiddleware) // Add logger middleware
-		graphqlRoute.Use(authMiddleware)   // Then authentication
+		graphqlRoute.Use(graphAuthMiddleware)
 		{
+			// Main endpoint for GraphQL API
 			graphqlRoute.POST("", graphHandler.QueryHandler())
 		}
 
