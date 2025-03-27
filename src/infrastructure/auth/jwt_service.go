@@ -3,12 +3,12 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	models "github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
 )
 
 // JWTService provides JWT token generation and validation
@@ -30,24 +30,17 @@ type TokenClaims struct {
 
 // NewJWTService creates a new JWTService
 func NewJWTService() *JWTService {
-	secret := os.Getenv("JWT_SECRET")
+	// load secret key from config file 
+	appConfig := config.GetConfig()
+	secret := appConfig.JWTSecret
 	if secret == "" {
 		secret = "default_jwt_secret_key_change_in_production"
 	}
 
 	// Get token duration from environment (default 24 hours)
 	var tokenDuration time.Duration
-	tokenExpirationHours := os.Getenv("JWT_EXPIRATION_HOURS")
-	if tokenExpirationHours == "" {
-		tokenDuration = 24 * time.Hour
-	} else {
-		var hours int
-		fmt.Sscanf(tokenExpirationHours, "%d", &hours)
-		if hours <= 0 {
-			hours = 24
-		}
-		tokenDuration = time.Duration(hours) * time.Hour
-	}
+	hours := appConfig.JWTDurationHour
+	tokenDuration = time.Duration(hours) * time.Hour
 
 	return &JWTService{
 		secretKey:     secret,

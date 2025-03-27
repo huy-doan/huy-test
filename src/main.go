@@ -44,16 +44,20 @@ func init() {
 // @name Authorization
 func main() {
 	appConfig := config.LoadConfig()
-	// Initialize logger
-	appLogger := logger.NewLogger(&logger.Config{
-		LogLevel:      appConfig.LogLevel,
-		LogDirectory:  appConfig.LogDirectory,
+
+	// Initialize logger as a singleton
+	logger.InitLogger(&logger.Config{
+		LogLevel:        appConfig.LogLevel,
+		LogDirectory:    appConfig.LogDirectory,
 		EnableConsoleLog: appConfig.EnableConsoleLog,
-		EnableSQLLog:  appConfig.EnableSQLLog,
+		EnableSQLLog:    appConfig.EnableSQLLog,
 	})
 
+	// Get the global logger instance
+	appLogger := logger.GetLogger()
+	
 	// Connect to database
-	db, err := mysql.NewConnection(appConfig, appLogger)
+	db, err := mysql.NewConnection(appLogger)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -70,7 +74,6 @@ func main() {
 
 	// Create and start API server
 	server := api.NewServer(userRepo, roleRepo, appLogger)
-
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

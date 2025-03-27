@@ -19,7 +19,8 @@ const (
 )
 
 // NewConnection creates a new MySQL database connection using GORM
-func NewConnection(appConfig *config.Config, appLogger logger.Logger) (*gorm.DB, error) {
+func NewConnection(appLogger logger.Logger) (*gorm.DB, error) {
+	appConfig := config.GetConfig()
 	dbHost     := appConfig.DBHost
 	dbPort     := appConfig.DBPort
 	dbUser     := appConfig.DBUser
@@ -33,7 +34,7 @@ func NewConnection(appConfig *config.Config, appLogger logger.Logger) (*gorm.DB,
 
 	// Create SQL logger that integrates with our custom logger
 	sqlLogger := logger.NewSQLLogger(&logger.Config{
-		LogLevel:      appConfig.LogLevel,
+		LogLevel:      appConfig.SqlLogLevel,
 		LogDirectory:  appConfig.LogDirectory,
 		EnableConsoleLog: appConfig.EnableConsoleLog,
 		EnableSQLLog:  appConfig.EnableSQLLog,
@@ -45,22 +46,22 @@ func NewConnection(appConfig *config.Config, appLogger logger.Logger) (*gorm.DB,
 	})
 
 	if err != nil {
-		// appLogger.Error("Failed to connect to database", map[string]interface{}{
-		// 	"error": err.Error(),
-		// 	"host":  dbHost,
-		// 	"port":  dbPort,
-		// 	"user":  dbUser,
-		// 	"name":  dbName,
-		// })
+		appLogger.Error("Failed to connect to database", map[string]interface{}{
+			"error": err.Error(),
+			"host":  dbHost,
+			"port":  dbPort,
+			"user":  dbUser,
+			"name":  dbName,
+		})
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Configure connection pool
 	sqlDB, err := db.DB()
 	if err != nil {
-		// appLogger.Error("Failed to get SQL DB handle", map[string]interface{}{
-		// 	"error": err.Error(),
-		// })
+		appLogger.Error("Failed to get SQL DB handle", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return nil, fmt.Errorf("failed to get SQL DB: %w", err)
 	}
 
@@ -68,14 +69,6 @@ func NewConnection(appConfig *config.Config, appLogger logger.Logger) (*gorm.DB,
 	sqlDB.SetMaxIdleConns(MAX_IDLE_CONNS)
 	sqlDB.SetMaxOpenConns(MAX_OPEN_CONNS)
 	sqlDB.SetConnMaxLifetime(CONN_MAX_LIFETIME)
-
-	// appLogger.Info("Database connection established", map[string]interface{}{
-	// 	"host":             dbHost,
-	// 	"name":             dbName,
-	// 	"max_idle_conns":   MAX_IDLE_CONNS,
-	// 	"max_open_conns":   MAX_OPEN_CONNS,
-	// 	"conn_max_lifetime": CONN_MAX_LIFETIME.String(),
-	// })
 
 	return db, nil
 }

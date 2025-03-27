@@ -19,9 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE KEY `email` (`email`),
   KEY `deleted_at` (`deleted_at`),
   KEY `fk_users_role` (`role_id`),
-  KEY `fk_users_mfa_type` (`mfa_type_id`),
-  CONSTRAINT `fk_users_mfa_type` FOREIGN KEY (`mfa_type_id`) REFERENCES `master_mfa_types` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT
+  KEY `fk_users_mfa_type` (`mfa_type_id`)
 );
 -- +goose StatementEnd
 

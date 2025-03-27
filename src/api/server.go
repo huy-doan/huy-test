@@ -15,6 +15,7 @@ import (
 	httpAPI "github.com/vnlab/makeshop-payment/src/api/http"
 	"github.com/vnlab/makeshop-payment/src/domain/repositories"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
 	"github.com/vnlab/makeshop-payment/src/lib/validator"
 	"github.com/vnlab/makeshop-payment/src/usecase"
@@ -34,8 +35,9 @@ func NewServer(
 	roleRepo repositories.RoleRepository,
 	appLogger logger.Logger,
 ) *Server {
+	appConfig := config.GetConfig()
 	// Set Gin mode
-	ginMode := os.Getenv("GIN_MODE")
+	ginMode := appConfig.GinMode
 	if ginMode != "" {
 		gin.SetMode(ginMode)
 	}
@@ -50,7 +52,7 @@ func NewServer(
 	jwtService := auth.NewJWTService()
 	userUsecase := usecase.NewUserUseCase(userRepo, roleRepo, jwtService)
 
-	// Set up HTTP routes - FIX: Save the router returned from SetupRouter
+	// Set up HTTP routes
 	router = httpAPI.SetupRouter(
 		router,
 		jwtService,
@@ -58,7 +60,7 @@ func NewServer(
 
 	// Set up GraphQL
 	graphql.SetupGraphQL(
-		router,  // This router instance is created but never assigned to the Server struct
+		router,
 		userUsecase,
 		jwtService,
 		appLogger,
@@ -85,6 +87,9 @@ func NewServer(
 
 // Start starts the API server
 func (s *Server) Start() error {
+	// Get the global logger
+	appLogger := logger.GetLogger()
+	
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -93,16 +98,27 @@ func (s *Server) Start() error {
 		<-quit
 		log.Println("Shutting down server...")
 
+		// Log shutdown with the application logger
+		appLogger.Info("Shutting down server gracefully", nil)
+
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if err := s.httpServer.Shutdown(ctx); err != nil {
-			log.Fatalf("Server forced to shutdown: %v", err)
+			appLogger.Error("Server forced to shutdown", map[string]interface{}{
+				"error": err.Error(),
+			})
 		}
 	}()
 
-	log.Printf("Server starting on %s", s.httpServer.Addr)
+	appLogger.Info("Server starting", map[string]interface{}{
+		"address": s.httpServer.Addr,
+	})
+
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		appLogger.Error("Server failed to start", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return err
 	}
 

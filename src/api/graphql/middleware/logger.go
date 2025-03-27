@@ -14,8 +14,11 @@ const (
 )
 
 // GraphQLLoggerMiddleware creates middleware for adding logger to GraphQL context
-func GraphQLLoggerMiddleware(appLogger logger.Logger) gin.HandlerFunc {
+func GraphQLLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Get the global logger instance
+		appLogger := logger.GetLogger()
+		
 		// Get trace ID from request header or generate a new one
 		traceID := c.GetHeader("X-Trace-ID")
 		if traceID == "" {
@@ -27,11 +30,11 @@ func GraphQLLoggerMiddleware(appLogger logger.Logger) gin.HandlerFunc {
 		
 		// Create request-specific logger with trace ID
 		reqLogger := appLogger.WithTraceID(traceID)
-		
+
 		// Store logger in Gin context
 		c.Set("logger", reqLogger)
 		
-		// Log basic request info - avoid trying to access GraphQL specifics here
+		// Log basic request info
 		reqLogger.Info("GraphQL request received", map[string]interface{}{
 			"method":     c.Request.Method,
 			"path":       c.Request.URL.Path,
@@ -53,10 +56,6 @@ func GetLogger(ctx context.Context) logger.Logger {
 	if l, ok := ctx.Value(LoggerContextKey).(logger.Logger); ok {
 		return l
 	}
-	// Return a default logger if none is found
-	return logger.NewLogger(&logger.Config{
-		LogLevel:      "info",
-		LogDirectory:  "./logs",
-		EnableConsoleLog: true,
-	})
+	// Return the global logger instance if none is found in context
+	return logger.GetLogger()
 }
