@@ -1,6 +1,6 @@
 package validator
 
-import "github.com/huydq/ddd-project/src/lib/validator"
+import "github.com/vnlab/makeshop-payment/src/lib/validator"
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`

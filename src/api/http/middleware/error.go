@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	apiErrors "github.com/huydq/ddd-project/src/api/http/errors"
+	apiErrors "github.com/vnlab/makeshop-payment/src/api/http/errors"
 )
 
 // ErrorHandler middleware catches and standardizes errors

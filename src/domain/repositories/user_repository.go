@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	models "github.com/huydq/ddd-project/src/domain/models"
+	models "github.com/vnlab/makeshop-payment/src/domain/models"
 )
 
 // UserRepository defines the interface for user data access

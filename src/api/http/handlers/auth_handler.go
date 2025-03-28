@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/huydq/ddd-project/src/api/http/errors"
-	"github.com/huydq/ddd-project/src/api/http/response"
-	"github.com/huydq/ddd-project/src/api/http/serializers"
-	validator "github.com/huydq/ddd-project/src/api/http/validator/auth"
-	"github.com/huydq/ddd-project/src/infrastructure/auth"
-	"github.com/huydq/ddd-project/src/usecase"
+	"github.com/vnlab/makeshop-payment/src/api/http/errors"
+	"github.com/vnlab/makeshop-payment/src/api/http/response"
+	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
+	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/auth"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 type AuthHandler struct {

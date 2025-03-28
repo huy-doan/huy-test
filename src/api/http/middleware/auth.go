@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/huydq/ddd-project/src/api/http/response"
-	"github.com/huydq/ddd-project/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/api/http/response"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 )
 
 // AuthMiddleware creates middleware for JWT authentication

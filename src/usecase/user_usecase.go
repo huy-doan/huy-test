@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	models "github.com/huydq/ddd-project/src/domain/models"
-	"github.com/huydq/ddd-project/src/domain/repositories"
-	"github.com/huydq/ddd-project/src/infrastructure/auth"
+	models "github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/vnlab/makeshop-payment/src/domain/repositories"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 )
 
 // UserUsecase handles user-related business logic

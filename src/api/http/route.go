@@ -1,17 +1,18 @@
 package http
 
 import (
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/huydq/ddd-project/src/api/http/handlers"
-	"github.com/huydq/ddd-project/src/api/http/middleware"
-	"github.com/huydq/ddd-project/src/domain/models"
-	"github.com/huydq/ddd-project/src/domain/repositories"
-	"github.com/huydq/ddd-project/src/infrastructure/auth"
-	"github.com/huydq/ddd-project/src/infrastructure/config"
-	"github.com/huydq/ddd-project/src/usecase"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/vnlab/makeshop-payment/src/api/http/handlers"
+	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
+	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/vnlab/makeshop-payment/src/domain/repositories"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 // SetupRouter sets up the Gin router with all routes and middleware
@@ -21,11 +22,10 @@ func SetupRouter(
 	roleRepo repositories.RoleRepository,
 	jwtService *auth.JWTService,
 ) *gin.Engine {
-	appConfig := config.GetConfig()
 	allowOrigin := "*"
 	allowHeader := []string{"Origin", "Content-Type", "Accept", "Authorization"}
-	if appConfig.FrontUrl != "" {
-		allowOrigin = appConfig.FrontUrl
+	if os.Getenv("API_FRONT_URL") != "" {
+		allowOrigin = os.Getenv("API_FRONT_URL")
 	}
 
 	// Configure CORS
@@ -42,7 +42,7 @@ func SetupRouter(
 	authHandler := handlers.NewAuthHandler(userUsecase, jwtService)
 	userHandler := handlers.NewUserHandler(userUsecase, jwtService)
 
-	// Set middleware
+	// Set up authentication middleware
 	authMiddleware := middleware.AuthMiddleware(jwtService)
 	adminMiddleware := middleware.RoleMiddleware(string(models.RoleCodeAdmin))
 
