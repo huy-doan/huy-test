@@ -1,6 +1,6 @@
 package validator
 
-import "github.com/vnlab/makeshop-payment/src/lib/validator"
+import "github.com/huydq/demo/src/lib/validator"
 
 type PaginationRequest struct {
 	Page     int `form:"page" binding:"omitempty,min=1"`

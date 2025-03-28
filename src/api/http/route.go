@@ -5,14 +5,14 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/huydq/demo/src/api/http/handlers"
+	"github.com/huydq/demo/src/api/http/middleware"
+	"github.com/huydq/demo/src/domain/models"
+	"github.com/huydq/demo/src/domain/repositories"
+	"github.com/huydq/demo/src/infrastructure/auth"
+	"github.com/huydq/demo/src/usecase"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/vnlab/makeshop-payment/src/api/http/handlers"
-	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 // SetupRouter sets up the Gin router with all routes and middleware

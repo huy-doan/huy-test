@@ -5,8 +5,8 @@ import (
 	"errors"
 	"math"
 
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
+	models "github.com/huydq/demo/src/domain/models"
+	"github.com/huydq/demo/src/domain/repositories"
 	"gorm.io/gorm"
 )
 

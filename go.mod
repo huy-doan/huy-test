@@ -1,4 +1,4 @@
-module github.com/vnlab/makeshop-payment
+module github.com/huydq/demo
 
 go 1.24
 

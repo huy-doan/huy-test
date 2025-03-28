@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "github.com/huydq/demo/docs"
+	"github.com/huydq/demo/src/api"
+	"github.com/huydq/demo/src/infrastructure/persistence/mysql"
+	"github.com/huydq/demo/src/infrastructure/persistence/repositories"
 	"github.com/joho/godotenv"
-	_ "github.com/vnlab/makeshop-payment/docs"
-	"github.com/vnlab/makeshop-payment/src/api"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
 )
 
 func init() {

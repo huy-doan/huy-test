@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	apiErrors "github.com/vnlab/makeshop-payment/src/api/http/errors"
+	apiErrors "github.com/huydq/demo/src/api/http/errors"
 )
 
 // Response is the standard API response structure

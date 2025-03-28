@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	httpAPI "github.com/vnlab/makeshop-payment/src/api/http"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/lib/validator"
+	httpAPI "github.com/huydq/demo/src/api/http"
+	"github.com/huydq/demo/src/domain/repositories"
+	"github.com/huydq/demo/src/infrastructure/auth"
+	"github.com/huydq/demo/src/lib/validator"
 )
 
 // Server represents the API server

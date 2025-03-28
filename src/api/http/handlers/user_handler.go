@@ -4,14 +4,14 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vnlab/makeshop-payment/src/api/http/errors"
-	"github.com/vnlab/makeshop-payment/src/api/http/response"
-	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
-	commonValidator "github.com/vnlab/makeshop-payment/src/api/http/validator/common"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/demo/src/api/http/errors"
+	"github.com/huydq/demo/src/api/http/response"
+	"github.com/huydq/demo/src/api/http/serializers"
+	commonValidator "github.com/huydq/demo/src/api/http/validator/common"
+	validator "github.com/huydq/demo/src/api/http/validator/user"
+	"github.com/huydq/demo/src/domain/models"
+	"github.com/huydq/demo/src/infrastructure/auth"
+	"github.com/huydq/demo/src/usecase"
 )
 
 type UserHandler struct {
