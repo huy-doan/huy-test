@@ -1,6 +1,0 @@
-type Query {
-  # User Queries
-  me: User!
-  user(id: Int!): User
-  users(page: Int, pageSize: Int): PaginatedUsers!
-}

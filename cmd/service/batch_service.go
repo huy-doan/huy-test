@@ -1,7 +1,8 @@
 package service
 
 import (
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
+	"github.com/huydq/ddd-project/src/infrastructure/logger"
+	"github.com/huydq/ddd-project/src/infrastructure/persistence/mysql"
 	"gorm.io/gorm"
 )
 
@@ -11,8 +12,9 @@ type BatchService struct {
 
 // NewBatchService init
 func NewBatchService() (*BatchService, error) {
+	appLogger := logger.GetLogger()
 	// Connect to database
-	db, err := mysql.NewConnection()
+	db, err := mysql.NewConnection(appLogger)
 	if err != nil {
 		return nil, err
 	}

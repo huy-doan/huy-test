@@ -33,10 +33,10 @@ models:
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
   User:
-    model: github.com/vnlab/makeshop-payment/src/domain/entities.User
+    model: github.com/huydq/ddd-project/src/domain/entities.User
   # Tùy chỉnh các scalar
   Time:
     model: github.com/99designs/gqlgen/graphql.Time
   # Các enum
   Role:
-    model: github.com/vnlab/makeshop-payment/src/domain/entities.Role
+    model: github.com/huydq/ddd-project/src/domain/entities.Role

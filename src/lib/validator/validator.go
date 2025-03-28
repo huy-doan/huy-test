@@ -27,7 +27,6 @@ func (v *CustomValidator) Init() {
 		// Add kana validation
 		v.validate.RegisterValidation("kana", validateKana)
 
-
 		// Use JSON tag names for validation errors
 		v.validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 			name := fld.Tag.Get("json")

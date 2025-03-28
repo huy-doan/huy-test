@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	models "github.com/huydq/ddd-project/src/domain/models"
+	"github.com/huydq/ddd-project/src/domain/repositories"
+	"github.com/huydq/ddd-project/src/infrastructure/auth"
 )
 
 // UserUsecase handles user-related business logic
 type UserUsecase struct {
-	userRepo    repositories.UserRepository
-	roleRepo    repositories.RoleRepository
-	jwtService  *auth.JWTService
+	userRepo   repositories.UserRepository
+	roleRepo   repositories.RoleRepository
+	jwtService *auth.JWTService
 }
 
 // NewUserUseCase creates a new UserUsecase
@@ -23,9 +23,9 @@ func NewUserUseCase(
 	jwtService *auth.JWTService,
 ) *UserUsecase {
 	return &UserUsecase{
-		userRepo:    userRepo,
-		roleRepo:    roleRepo,
-		jwtService:  jwtService,
+		userRepo:   userRepo,
+		roleRepo:   roleRepo,
+		jwtService: jwtService,
 	}
 }
 
@@ -55,7 +55,7 @@ type UpdateProfileRequest struct {
 
 // LoginResponse represents a login response with token
 type LoginResponse struct {
-	Token string         `json:"token"`
+	Token string       `json:"token"`
 	User  *models.User `json:"user"`
 }
 

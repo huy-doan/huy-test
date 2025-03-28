@@ -1,16 +1,17 @@
-// src/api/http/handlers/user_handler.go
 package handlers
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	commonValidator "github.com/vnlab/makeshop-payment/src/api/http/validator/common"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/ddd-project/src/api/http/errors"
+	"github.com/huydq/ddd-project/src/api/http/response"
+	"github.com/huydq/ddd-project/src/api/http/serializers"
+	commonValidator "github.com/huydq/ddd-project/src/api/http/validator/common"
+	validator "github.com/huydq/ddd-project/src/api/http/validator/user"
+	"github.com/huydq/ddd-project/src/domain/models"
+	"github.com/huydq/ddd-project/src/infrastructure/auth"
+	"github.com/huydq/ddd-project/src/usecase"
 )
 
 type UserHandler struct {
@@ -31,25 +32,30 @@ func NewUserHandler(userUsecase *usecase.UserUsecase, jwtService *auth.JWTServic
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} models.User
-// @Failure 401 {object} map[string]string "Unauthorized"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 200 {object} response.Response{data=models.User}
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID, _ := c.Get("userId")
 	id, ok := userID.(int)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		response.Unauthorized(c, "Unauthorized")
 		return
 	}
 
 	user, err := h.userUsecase.GetUserByID(c, id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(c, errors.InternalError("Failed to get user profile"))
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	if user == nil {
+		response.NotFound(c, "User not found")
+		return
+	}
+
+	response.Success(c, serializers.NewUserSerializer(user).Serialize(), "User profile retrieved successfully")
 }
 
 // @Summary Update user profile
@@ -59,27 +65,27 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body validator.UpdateProfileRequest true "Profile update details"
-// @Success 200 {object} models.User
-// @Failure 400 {object} map[string]string "Bad Request"
-// @Failure 401 {object} map[string]string "Unauthorized"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 200 {object} response.Response{data=models.User}
+// @Failure 400 {object} response.Response "Bad Request"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/profile [put]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var req validator.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
 	userID, _ := c.Get("userId")
 	id, ok := userID.(int)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		response.Unauthorized(c, "Unauthorized")
 		return
 	}
 
@@ -92,11 +98,11 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	user, err := h.userUsecase.UpdateUserProfile(c, id, updateReq)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(c, errors.InternalError("Failed to update user profile"))
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	response.Success(c, serializers.NewUserSerializer(user).Serialize(), "Profile updated successfully")
 }
 
 // @Summary Change user password
@@ -106,37 +112,41 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body validator.ChangePasswordRequest true "Password change details"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string "Bad Request"
-// @Failure 401 {object} map[string]string "Unauthorized"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 200 {object} response.Response "Success"
+// @Failure 400 {object} response.Response "Bad Request"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/change-password [post]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	var req validator.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
 	userID, _ := c.Get("userId")
 	id, ok := userID.(int)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		response.Unauthorized(c, "Unauthorized")
 		return
 	}
 
 	err := h.userUsecase.ChangePassword(c, id, req.CurrentPassword, req.NewPassword)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err.Error() == "current password is incorrect" {
+			response.BadRequest(c, "Current password is incorrect", nil)
+			return
+		}
+		response.Error(c, errors.InternalError("Failed to change password"))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
+	response.Success(c, nil, "Password changed successfully")
 }
 
 // @Summary Get a user by ID
@@ -146,32 +156,32 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "User ID"
-// @Success 200 {object} models.User
-// @Failure 400 {object} map[string]string "Bad Request"
-// @Failure 401 {object} map[string]string "Unauthorized"
-// @Failure 403 {object} map[string]string "Forbidden"
-// @Failure 404 {object} map[string]string "Not Found"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 200 {object} response.Response{data=models.User}
+// @Failure 400 {object} response.Response "Bad Request"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 403 {object} response.Response "Forbidden"
+// @Failure 404 {object} response.Response "Not Found"
+// @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/{id} [get]
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		response.BadRequest(c, "Invalid user ID", nil)
 		return
 	}
 
 	user, err := h.userUsecase.GetUserByID(c, id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(c, errors.InternalError("Failed to get user"))
 		return
 	}
 
 	if user == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		response.NotFound(c, "User not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	response.Success(c, serializers.NewUserSerializer(user).Serialize(), "User retrieved successfully")
 }
 
 // @Summary List users
@@ -182,20 +192,20 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 // @Security BearerAuth
 // @Param page query integer false "Page number (default: 1)"
 // @Param page_size query integer false "Page size (default: 10, max: 100)"
-// @Success 200 {object} object
-// @Failure 401 {object} map[string]string "Unauthorized"
-// @Failure 403 {object} map[string]string "Forbidden"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 200 {object} response.Response "Success"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 403 {object} response.Response "Forbidden"
+// @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users [get]
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	var req commonValidator.PaginationRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -209,23 +219,23 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		pageSize = req.PageSize
 	}
 
-	// Kiểm tra vai trò admin
+	// Check admin role
 	roleCode, exists := c.Get("roleCode")
 	if !exists || roleCode != string(models.RoleCodeAdmin) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "permission denied"})
+		response.Forbidden(c, "Permission denied")
 		return
 	}
 
 	users, totalPages, err := h.userUsecase.ListUsers(c, page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(c, errors.InternalError("Failed to list users"))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"users":       users,
+	response.Success(c, gin.H{
+		"users":       serializers.SerializeUserCollection(users),
 		"page":        page,
 		"page_size":   pageSize,
 		"total_pages": totalPages,
-	})
+	}, "Users retrieved successfully")
 }

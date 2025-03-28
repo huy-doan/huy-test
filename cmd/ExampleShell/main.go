@@ -3,7 +3,7 @@ package ExampleShell
 import (
 	"log"
 
-	"github.com/vnlab/makeshop-payment/cmd/service"
+	"github.com/huydq/ddd-project/cmd/service"
 )
 
 func Execute() {

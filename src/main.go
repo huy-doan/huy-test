@@ -5,11 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "github.com/huydq/ddd-project/docs"
+	"github.com/huydq/ddd-project/src/api"
+	"github.com/huydq/ddd-project/src/infrastructure/config"
+	"github.com/huydq/ddd-project/src/infrastructure/logger"
+	"github.com/huydq/ddd-project/src/infrastructure/persistence/mysql"
+	"github.com/huydq/ddd-project/src/infrastructure/persistence/repositories"
 	"github.com/joho/godotenv"
-	_ "github.com/vnlab/makeshop-payment/docs"
-	"github.com/vnlab/makeshop-payment/src/api"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
 )
 
 func init() {
@@ -41,8 +43,21 @@ func init() {
 // @in header
 // @name Authorization
 func main() {
+	appConfig := config.LoadConfig()
+
+	// Initialize logger as a singleton
+	logger.InitLogger(&logger.Config{
+		LogLevel:        appConfig.LogLevel,
+		LogDirectory:    appConfig.LogDirectory,
+		EnableConsoleLog: appConfig.EnableConsoleLog,
+		EnableSQLLog:    appConfig.EnableSQLLog,
+	})
+
+	// Get the global logger instance
+	appLogger := logger.GetLogger()
+	
 	// Connect to database
-	db, err := mysql.NewConnection()
+	db, err := mysql.NewConnection(appLogger)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -58,7 +73,7 @@ func main() {
 	roleRepo := repositories.NewRoleRepository(db)
 
 	// Create and start API server
-	server := api.NewServer(userRepo, roleRepo)
+	server := api.NewServer(userRepo, roleRepo, appLogger)
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

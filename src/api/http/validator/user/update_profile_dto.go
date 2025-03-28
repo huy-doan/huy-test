@@ -1,6 +1,6 @@
 package validator
 
-import "github.com/vnlab/makeshop-payment/src/lib/validator"
+import "github.com/huydq/ddd-project/src/lib/validator"
 
 type UpdateProfileRequest struct {
 	FirstName     string `json:"first_name" binding:"required"`
@@ -9,7 +9,6 @@ type UpdateProfileRequest struct {
 	LastNameKana  string `json:"last_name_kana" binding:"required"`
 }
 
-// Validate kiểm tra dữ liệu của UpdateProfileRequest
 func (r *UpdateProfileRequest) Validate() error {
 	v := validator.GetValidate()
 	return v.Struct(r)

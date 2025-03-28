@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/ddd-project/src/api/http/errors"
+	"github.com/huydq/ddd-project/src/api/http/response"
+	"github.com/huydq/ddd-project/src/api/http/serializers"
+	validator "github.com/huydq/ddd-project/src/api/http/validator/auth"
+	"github.com/huydq/ddd-project/src/infrastructure/auth"
+	"github.com/huydq/ddd-project/src/usecase"
 )
 
 type AuthHandler struct {
@@ -27,20 +28,20 @@ func NewAuthHandler(userUsecase *usecase.UserUsecase, jwtService *auth.JWTServic
 // @Accept json
 // @Produce json
 // @Param request body validator.LoginRequest true "Login credentials"
-// @Success 200 {object} usecase.LoginResponse
-// @Failure 400 {object} map[string]string "Bad Request"
-// @Failure 401 {object} map[string]string "Unauthorized"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 200 {object} response.Response{data=usecase.LoginResponse}
+// @Failure 400 {object} response.Response "Bad Request"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req validator.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -51,11 +52,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	result, err := h.userUsecase.Login(c, loginReq)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		response.Unauthorized(c, "Invalid email or password")
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	// We transform the login response directly here since it's a special case
+	// containing both user data and a token
+	responseData := map[string]interface{}{
+		"token": result.Token,
+		"user":  serializers.NewUserSerializer(result.User).Serialize(),
+	}
+	response.Success(c, responseData, "Login successful")
 }
 
 // @Summary Register a new user
@@ -64,19 +71,19 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body validator.RegisterRequest true "User registration details"
-// @Success 201 {object} models.User
-// @Failure 400 {object} map[string]string "Bad Request"
-// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Success 201 {object} response.Response{data=models.User}
+// @Failure 400 {object} response.Response "Bad Request"
+// @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req validator.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -91,11 +98,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	user, err := h.userUsecase.Register(c, registerReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// Check for specific error cases
+		if err.Error() == "email already exists" {
+			response.BadRequest(c, "Email already exists", nil)
+			return
+		}
+		response.Error(c, errors.InternalError("Failed to register user"))
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	response.Created(c, serializers.NewUserSerializer(user).Serialize(), "User registered successfully")
 }
 
 // @Summary Logout a user
@@ -104,22 +116,22 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]string
-// @Failure 401 {object} map[string]string "Unauthorized"
+// @Success 200 {object} response.Response "Success"
+// @Failure 401 {object} response.Response "Unauthorized"
 // @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	token, exists := c.Get("token")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "no token found"})
+		response.Unauthorized(c, "No token found")
 		return
 	}
 
 	tokenStr, ok := token.(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid token format"})
+		response.Error(c, errors.InternalError("Invalid token format"))
 		return
 	}
 
 	h.jwtService.BlacklistToken(tokenStr)
-	c.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
+	response.Success(c, nil, "Logged out successfully")
 }

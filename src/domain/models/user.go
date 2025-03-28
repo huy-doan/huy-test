@@ -64,14 +64,14 @@ func NewUser(email, password, firstName, lastName, firstNameKana, lastNameKana s
 	}
 
 	return &User{
-		Email:          email,
-		PasswordHash:   string(hashedPassword),
-		RoleID:         roleID,
-		EnabledMFA:     true, // Default to enabled
-		FirstName:      firstName,
-		LastName:       lastName,
-		FirstNameKana:  firstNameKana,
-		LastNameKana:   lastNameKana,
+		Email:         email,
+		PasswordHash:  string(hashedPassword),
+		RoleID:        roleID,
+		EnabledMFA:    true, // Default to enabled
+		FirstName:     firstName,
+		LastName:      lastName,
+		FirstNameKana: firstNameKana,
+		LastNameKana:  lastNameKana,
 	}, nil
 }
 
@@ -102,7 +102,7 @@ func (u *User) UpdateProfile(firstName, lastName, firstNameKana, lastNameKana st
 	if firstName == "" || lastName == "" {
 		return errors.New("first name and last name cannot be empty")
 	}
-	
+
 	if firstNameKana == "" || lastNameKana == "" {
 		return errors.New("first name kana and last name kana cannot be empty")
 	}

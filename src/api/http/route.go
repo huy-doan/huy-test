@@ -1,18 +1,17 @@
-// src/api/http/route.go - cập nhật
 package http
 
 import (
-	"os"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/huydq/ddd-project/src/api/http/handlers"
+	"github.com/huydq/ddd-project/src/api/http/middleware"
+	"github.com/huydq/ddd-project/src/domain/models"
+	"github.com/huydq/ddd-project/src/domain/repositories"
+	"github.com/huydq/ddd-project/src/infrastructure/auth"
+	"github.com/huydq/ddd-project/src/infrastructure/config"
+	"github.com/huydq/ddd-project/src/usecase"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/vnlab/makeshop-payment/src/api/http/handlers"
-	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 // SetupRouter sets up the Gin router with all routes and middleware
@@ -22,10 +21,11 @@ func SetupRouter(
 	roleRepo repositories.RoleRepository,
 	jwtService *auth.JWTService,
 ) *gin.Engine {
+	appConfig := config.GetConfig()
 	allowOrigin := "*"
 	allowHeader := []string{"Origin", "Content-Type", "Accept", "Authorization"}
-	if os.Getenv("API_FRONT_URL") != "" {
-		allowOrigin = os.Getenv("API_FRONT_URL")
+	if appConfig.FrontUrl != "" {
+		allowOrigin = appConfig.FrontUrl
 	}
 
 	// Configure CORS
@@ -42,9 +42,9 @@ func SetupRouter(
 	authHandler := handlers.NewAuthHandler(userUsecase, jwtService)
 	userHandler := handlers.NewUserHandler(userUsecase, jwtService)
 
-	// Set up authentication middleware
+	// Set middleware
 	authMiddleware := middleware.AuthMiddleware(jwtService)
-	adminMiddleware := middleware.RoleMiddleware("SYSTEM_ADMIN")
+	adminMiddleware := middleware.RoleMiddleware(string(models.RoleCodeAdmin))
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
@@ -52,8 +52,7 @@ func SetupRouter(
 			"status": "ok",
 		})
 	})
-
-	// router.Use(middleware.ErrorHandler())
+	router.Use(middleware.ErrorHandler())
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")
@@ -66,15 +65,25 @@ func SetupRouter(
 			auth.POST("/logout", authMiddleware, authHandler.Logout)
 		}
 
-		// User routes (protected)
-		users := v1.Group("/users")
-		users.Use(authMiddleware)
+		// Protected routes
+		protected := v1.Group("")
+		protected.Use(authMiddleware)
 		{
-			users.GET("", adminMiddleware, userHandler.ListUsers)
-			users.GET("/:id", userHandler.GetUserByID)
-			users.GET("/profile", userHandler.GetProfile)
-			users.PUT("/profile", userHandler.UpdateProfile)
-			users.POST("/change-password", userHandler.ChangePassword)
+			// User routes
+			users := protected.Group("/users")
+			{
+				users.GET("/profile", userHandler.GetProfile)
+				users.PUT("/profile", userHandler.UpdateProfile)
+				users.POST("/change-password", userHandler.ChangePassword)
+
+				// Admin-only routes
+				admin := users.Group("")
+				admin.Use(adminMiddleware)
+				{
+					admin.GET("", userHandler.ListUsers)
+					admin.GET("/:id", userHandler.GetUserByID)
+				}
+			}
 		}
 	}
 
@@ -82,6 +91,5 @@ func SetupRouter(
 		// Setup Swagger
 		router.GET("/swaggers/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
-
 	return router
 }

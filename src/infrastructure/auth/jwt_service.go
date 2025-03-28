@@ -3,12 +3,12 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
+	models "github.com/huydq/ddd-project/src/domain/models"
+	"github.com/huydq/ddd-project/src/infrastructure/config"
 )
 
 // JWTService provides JWT token generation and validation
@@ -21,33 +21,26 @@ type JWTService struct {
 
 // TokenClaims represents the claims in a JWT token
 type TokenClaims struct {
-	UserID    int    `json:"user_id"`
-	Email     string `json:"email"`
-	RoleID    int    `json:"role_id"`
-	RoleCode  string `json:"role_code,omitempty"`
+	UserID   int    `json:"user_id"`
+	Email    string `json:"email"`
+	RoleID   int    `json:"role_id"`
+	RoleCode string `json:"role_code,omitempty"`
 	jwt.RegisteredClaims
 }
 
 // NewJWTService creates a new JWTService
 func NewJWTService() *JWTService {
-	secret := os.Getenv("JWT_SECRET")
+	// load secret key from config file 
+	appConfig := config.GetConfig()
+	secret := appConfig.JWTSecret
 	if secret == "" {
 		secret = "default_jwt_secret_key_change_in_production"
 	}
 
 	// Get token duration from environment (default 24 hours)
 	var tokenDuration time.Duration
-	tokenExpirationHours := os.Getenv("JWT_EXPIRATION_HOURS")
-	if tokenExpirationHours == "" {
-		tokenDuration = 24 * time.Hour
-	} else {
-		var hours int
-		fmt.Sscanf(tokenExpirationHours, "%d", &hours)
-		if hours <= 0 {
-			hours = 24
-		}
-		tokenDuration = time.Duration(hours) * time.Hour
-	}
+	hours := appConfig.JWTDurationHour
+	tokenDuration = time.Duration(hours) * time.Hour
 
 	return &JWTService{
 		secretKey:     secret,
@@ -68,10 +61,10 @@ func (s *JWTService) GenerateToken(user *models.User) (string, error) {
 	}
 
 	claims := TokenClaims{
-		UserID:    user.ID,
-		Email:     user.Email,
-		RoleID:    user.RoleID,
-		RoleCode:  roleCode,
+		UserID:   user.ID,
+		Email:    user.Email,
+		RoleID:   user.RoleID,
+		RoleCode: roleCode,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.tokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -89,7 +82,7 @@ func (s *JWTService) ValidateToken(tokenString string) (*TokenClaims, error) {
 	s.mutex.RLock()
 	_, blacklisted := s.blacklist[tokenString]
 	s.mutex.RUnlock()
-	
+
 	if blacklisted {
 		return nil, errors.New("token has been revoked")
 	}
@@ -118,7 +111,7 @@ func (s *JWTService) BlacklistToken(tokenString string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.blacklist[tokenString] = time.Now()
-	
+
 	// Auto cleanup expired tokens from the blacklist
 	s.cleanupBlacklist()
 }
@@ -147,7 +140,7 @@ func (s *JWTService) cleanupBlacklist() {
 		// Ensure thread-safety when deleting
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
-		
+
 		// Check and delete tokens that have expired (e.g., over 24 hours)
 		threshold := time.Now().Add(-24 * time.Hour)
 		for token, blacklistedAt := range s.blacklist {

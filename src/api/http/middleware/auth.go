@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/huydq/ddd-project/src/api/http/response"
+	"github.com/huydq/ddd-project/src/infrastructure/auth"
 )
 
 // AuthMiddleware creates middleware for JWT authentication
@@ -14,7 +14,7 @@ func AuthMiddleware(jwtService *auth.JWTService) gin.HandlerFunc {
 		// Get the Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization header is required"})
+			response.Unauthorized(c, "Authorization header is required")
 			c.Abort()
 			return
 		}
@@ -22,24 +22,24 @@ func AuthMiddleware(jwtService *auth.JWTService) gin.HandlerFunc {
 		// Check if header has the correct format
 		headerParts := strings.Split(authHeader, " ")
 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization header format must be Bearer {token}"})
+			response.Unauthorized(c, "Authorization header format must be Bearer {token}")
 			c.Abort()
 			return
 		}
 
 		// Parse and validate the token
 		tokenString := headerParts[1]
-		
+
 		// Check if token is blacklisted
 		if jwtService.IsBlacklisted(tokenString) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "token has been revoked"})
+			response.Unauthorized(c, "Token has been revoked")
 			c.Abort()
 			return
 		}
-		
+
 		claims, err := jwtService.ValidateToken(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			response.Unauthorized(c, "Invalid or expired token")
 			c.Abort()
 			return
 		}
@@ -61,7 +61,7 @@ func RoleMiddleware(roles ...string) gin.HandlerFunc {
 		// Get user role from context (set by AuthMiddleware)
 		roleCode, exists := c.Get("roleCode")
 		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: missing role information"})
+			response.Unauthorized(c, "Unauthorized: missing role information")
 			c.Abort()
 			return
 		}
@@ -69,11 +69,11 @@ func RoleMiddleware(roles ...string) gin.HandlerFunc {
 		// Check if user has one of the required roles
 		userRoleCode, ok := roleCode.(string)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: invalid role format"})
+			response.Unauthorized(c, "Unauthorized: invalid role format")
 			c.Abort()
 			return
 		}
-		
+
 		authorized := false
 		for _, role := range roles {
 			if userRoleCode == role {
@@ -83,7 +83,7 @@ func RoleMiddleware(roles ...string) gin.HandlerFunc {
 		}
 
 		if !authorized {
-			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden: insufficient permissions"})
+			response.Forbidden(c, "Forbidden: insufficient permissions")
 			c.Abort()
 			return
 		}
