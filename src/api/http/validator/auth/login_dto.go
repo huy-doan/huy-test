@@ -1,6 +1,6 @@
 package validator
 
-import "github.com/huydq/demo/src/lib/validator"
+import "github.com/vnlab/makeshop-payment/src/lib/validator"
 
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -8,5 +8,6 @@ type LoginRequest struct {
 }
 
 func (r *LoginRequest) Validate() error {
-	return validator.ValidateStruct(r)
+	v := validator.GetValidate()
+	return v.Struct(r)
 }

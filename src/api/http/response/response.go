@@ -1,10 +1,10 @@
 package response
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	apiErrors "github.com/huydq/demo/src/api/http/errors"
+	apiErrors "github.com/vnlab/makeshop-payment/src/api/http/errors"
 )
 
 // Response is the standard API response structure
@@ -15,10 +15,19 @@ type Response struct {
 	Error   interface{} `json:"error,omitempty"`
 }
 
+// writeJSON writes a JSON response with the given status code
+func writeJSON(w http.ResponseWriter, statusCode int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	if data != nil {
+		json.NewEncoder(w).Encode(data)
+	}
+}
+
 // Success sends a successful response
-func Success(c *gin.Context, data interface{}, message string) {
+func Success(w http.ResponseWriter, data interface{}, message string) {
 	serializedData := DefaultSerialize(data)
-	c.JSON(http.StatusOK, Response{
+	writeJSON(w, http.StatusOK, Response{
 		Success: true,
 		Message: message,
 		Data:    serializedData,
@@ -26,9 +35,9 @@ func Success(c *gin.Context, data interface{}, message string) {
 }
 
 // Created sends a 201 Created response
-func Created(c *gin.Context, data interface{}, message string) {
+func Created(w http.ResponseWriter, data interface{}, message string) {
 	serializedData := DefaultSerialize(data)
-	c.JSON(http.StatusCreated, Response{
+	writeJSON(w, http.StatusCreated, Response{
 		Success: true,
 		Message: message,
 		Data:    serializedData,
@@ -36,15 +45,15 @@ func Created(c *gin.Context, data interface{}, message string) {
 }
 
 // Error sends an error response
-func Error(c *gin.Context, err error) {
+func Error(w http.ResponseWriter, err error) {
 	// Handle different error types
 	switch e := err.(type) {
 	case *apiErrors.Error:
 		// If it's our custom error type, use it directly
-		c.JSON(e.StatusCode, Response{
+		writeJSON(w, e.StatusCode, Response{
 			Success: false,
 			Message: e.Message,
-			Error: gin.H{
+			Error: map[string]interface{}{
 				"code":    e.Code,
 				"type":    e.Type,
 				"details": e.Details,
@@ -53,10 +62,10 @@ func Error(c *gin.Context, err error) {
 	default:
 		// For any other error, convert to internal server error
 		internalErr := apiErrors.InternalError(err.Error())
-		c.JSON(internalErr.StatusCode, Response{
+		writeJSON(w, internalErr.StatusCode, Response{
 			Success: false,
 			Message: internalErr.Message,
-			Error: gin.H{
+			Error: map[string]interface{}{
 				"code":    internalErr.Code,
 				"type":    internalErr.Type,
 				"details": internalErr.Details,
@@ -66,12 +75,12 @@ func Error(c *gin.Context, err error) {
 }
 
 // ValidationError sends a validation error response
-func ValidationError(c *gin.Context, err error) {
+func ValidationError(w http.ResponseWriter, err error) {
 	validationErr := apiErrors.FormatValidationError(err)
-	c.JSON(validationErr.StatusCode, Response{
+	writeJSON(w, validationErr.StatusCode, Response{
 		Success: false,
 		Message: validationErr.Message,
-		Error: gin.H{
+		Error: map[string]interface{}{
 			"code":    validationErr.Code,
 			"type":    validationErr.Type,
 			"details": validationErr.Details,
@@ -80,12 +89,12 @@ func ValidationError(c *gin.Context, err error) {
 }
 
 // NotFound sends a not found error response
-func NotFound(c *gin.Context, message string) {
+func NotFound(w http.ResponseWriter, message string) {
 	notFoundErr := apiErrors.NotFoundError(message)
-	c.JSON(notFoundErr.StatusCode, Response{
+	writeJSON(w, notFoundErr.StatusCode, Response{
 		Success: false,
 		Message: notFoundErr.Message,
-		Error: gin.H{
+		Error: map[string]interface{}{
 			"code": notFoundErr.Code,
 			"type": notFoundErr.Type,
 		},
@@ -93,12 +102,12 @@ func NotFound(c *gin.Context, message string) {
 }
 
 // Unauthorized sends an unauthorized error response
-func Unauthorized(c *gin.Context, message string) {
+func Unauthorized(w http.ResponseWriter, message string) {
 	unauthorizedErr := apiErrors.UnauthorizedError(message)
-	c.JSON(unauthorizedErr.StatusCode, Response{
+	writeJSON(w, unauthorizedErr.StatusCode, Response{
 		Success: false,
 		Message: unauthorizedErr.Message,
-		Error: gin.H{
+		Error: map[string]interface{}{
 			"code": unauthorizedErr.Code,
 			"type": unauthorizedErr.Type,
 		},
@@ -106,12 +115,12 @@ func Unauthorized(c *gin.Context, message string) {
 }
 
 // Forbidden sends a forbidden error response
-func Forbidden(c *gin.Context, message string) {
+func Forbidden(w http.ResponseWriter, message string) {
 	forbiddenErr := apiErrors.ForbiddenError(message)
-	c.JSON(forbiddenErr.StatusCode, Response{
+	writeJSON(w, forbiddenErr.StatusCode, Response{
 		Success: false,
 		Message: forbiddenErr.Message,
-		Error: gin.H{
+		Error: map[string]interface{}{
 			"code": forbiddenErr.Code,
 			"type": forbiddenErr.Type,
 		},
@@ -119,12 +128,12 @@ func Forbidden(c *gin.Context, message string) {
 }
 
 // BadRequest sends a bad request error response
-func BadRequest(c *gin.Context, message string, details interface{}) {
+func BadRequest(w http.ResponseWriter, message string, details interface{}) {
 	badRequestErr := apiErrors.ValidationError(message, details)
-	c.JSON(badRequestErr.StatusCode, Response{
+	writeJSON(w, badRequestErr.StatusCode, Response{
 		Success: false,
 		Message: badRequestErr.Message,
-		Error: gin.H{
+		Error: map[string]interface{}{
 			"code":    badRequestErr.Code,
 			"type":    badRequestErr.Type,
 			"details": badRequestErr.Details,

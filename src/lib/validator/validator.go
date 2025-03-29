@@ -18,7 +18,7 @@ func init() {
 	once.Do(func() {
 		validate = validator.New()
 
-		// Register validators
+		// Register custom validations
 		validate.RegisterValidation("kana", validateKana)
 
 		// Use JSON tag names for validation errors
@@ -37,9 +37,10 @@ func GetValidate() *validator.Validate {
 	return validate
 }
 
-// ValidateStruct validates a struct
-func ValidateStruct(obj interface{}) error {
-	return validate.Struct(obj)
+// Setup re-initializes the validator if needed (e.g. for testing)
+func Setup() {
+	// This is now a no-op since init() already sets up the validator
+	// But we keep it for compatibility with existing code
 }
 
 // Validates if string contains only Katakana characters

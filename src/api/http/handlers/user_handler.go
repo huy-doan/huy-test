@@ -1,17 +1,19 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
+	"strings"
 
-	"github.com/gin-gonic/gin"
-	"github.com/huydq/demo/src/api/http/errors"
-	"github.com/huydq/demo/src/api/http/response"
-	"github.com/huydq/demo/src/api/http/serializers"
-	commonValidator "github.com/huydq/demo/src/api/http/validator/common"
-	validator "github.com/huydq/demo/src/api/http/validator/user"
-	"github.com/huydq/demo/src/domain/models"
-	"github.com/huydq/demo/src/infrastructure/auth"
-	"github.com/huydq/demo/src/usecase"
+	"github.com/vnlab/makeshop-payment/src/api/http/errors"
+	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
+	"github.com/vnlab/makeshop-payment/src/api/http/response"
+	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
+	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
+	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/lib/utils"
+	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 type UserHandler struct {
@@ -26,6 +28,7 @@ func NewUserHandler(userUsecase *usecase.UserUsecase, jwtService *auth.JWTServic
 	}
 }
 
+// GetProfile handles getting the authenticated user's profile
 // @Summary Get user profile
 // @Description Get the profile of the authenticated user
 // @Tags users
@@ -36,28 +39,28 @@ func NewUserHandler(userUsecase *usecase.UserUsecase, jwtService *auth.JWTServic
 // @Failure 401 {object} response.Response "Unauthorized"
 // @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/profile [get]
-func (h *UserHandler) GetProfile(c *gin.Context) {
-	userID, _ := c.Get("userId")
-	id, ok := userID.(int)
+func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {
-		response.Unauthorized(c, "Unauthorized")
+		response.Unauthorized(w, "Unauthorized")
 		return
 	}
 
-	user, err := h.userUsecase.GetUserByID(c, id)
+	user, err := h.userUsecase.GetUserByID(r.Context(), userID)
 	if err != nil {
-		response.Error(c, errors.InternalError("Failed to get user profile"))
+		response.Error(w, errors.InternalError("Failed to get user profile"))
 		return
 	}
 
 	if user == nil {
-		response.NotFound(c, "User not found")
+		response.NotFound(w, "User not found")
 		return
 	}
 
-	response.Success(c, serializers.NewUserSerializer(user).Serialize(), "User profile retrieved successfully")
+	response.Success(w, serializers.NewUserSerializer(user).Serialize(), "User profile retrieved successfully")
 }
 
+// UpdateProfile handles updating the authenticated user's profile
 // @Summary Update user profile
 // @Description Update the profile of the authenticated user
 // @Tags users
@@ -70,22 +73,21 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 // @Failure 401 {object} response.Response "Unauthorized"
 // @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/profile [put]
-func (h *UserHandler) UpdateProfile(c *gin.Context) {
+func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	var req validator.UpdateProfileRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ValidationError(c, err)
+	if err := utils.ParseJSONBody(r, &req); err != nil {
+		response.ValidationError(w, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		response.ValidationError(c, err)
+		response.ValidationError(w, err)
 		return
 	}
 
-	userID, _ := c.Get("userId")
-	id, ok := userID.(int)
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {
-		response.Unauthorized(c, "Unauthorized")
+		response.Unauthorized(w, "Unauthorized")
 		return
 	}
 
@@ -96,15 +98,16 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		LastNameKana:  req.LastNameKana,
 	}
 
-	user, err := h.userUsecase.UpdateUserProfile(c, id, updateReq)
+	user, err := h.userUsecase.UpdateUserProfile(r.Context(), userID, updateReq)
 	if err != nil {
-		response.Error(c, errors.InternalError("Failed to update user profile"))
+		response.Error(w, errors.InternalError("Failed to update user profile"))
 		return
 	}
 
-	response.Success(c, serializers.NewUserSerializer(user).Serialize(), "Profile updated successfully")
+	response.Success(w, serializers.NewUserSerializer(user).Serialize(), "Profile updated successfully")
 }
 
+// ChangePassword handles changing the authenticated user's password
 // @Summary Change user password
 // @Description Change the password of the authenticated user
 // @Tags users
@@ -117,38 +120,38 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 // @Failure 401 {object} response.Response "Unauthorized"
 // @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/change-password [post]
-func (h *UserHandler) ChangePassword(c *gin.Context) {
+func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	var req validator.ChangePasswordRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ValidationError(c, err)
+	if err := utils.ParseJSONBody(r, &req); err != nil {
+		response.ValidationError(w, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		response.ValidationError(c, err)
+		response.ValidationError(w, err)
 		return
 	}
 
-	userID, _ := c.Get("userId")
-	id, ok := userID.(int)
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {
-		response.Unauthorized(c, "Unauthorized")
+		response.Unauthorized(w, "Unauthorized")
 		return
 	}
 
-	err := h.userUsecase.ChangePassword(c, id, req.CurrentPassword, req.NewPassword)
+	err := h.userUsecase.ChangePassword(r.Context(), userID, req.CurrentPassword, req.NewPassword)
 	if err != nil {
 		if err.Error() == "current password is incorrect" {
-			response.BadRequest(c, "Current password is incorrect", nil)
+			response.BadRequest(w, "Current password is incorrect", nil)
 			return
 		}
-		response.Error(c, errors.InternalError("Failed to change password"))
+		response.Error(w, errors.InternalError("Failed to change password"))
 		return
 	}
 
-	response.Success(c, nil, "Password changed successfully")
+	response.Success(w, nil, "Password changed successfully")
 }
 
+// GetUserByID handles getting a user by ID
 // @Summary Get a user by ID
 // @Description Get a user's details by their ID
 // @Tags users
@@ -163,27 +166,36 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 // @Failure 404 {object} response.Response "Not Found"
 // @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users/{id} [get]
-func (h *UserHandler) GetUserByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
+	// Extract the ID from the URL path
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 4 {
+		response.BadRequest(w, "Invalid URL path", nil)
+		return
+	}
+	idStr := pathParts[len(pathParts)-1]
+
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest(c, "Invalid user ID", nil)
+		response.BadRequest(w, "Invalid user ID", nil)
 		return
 	}
 
-	user, err := h.userUsecase.GetUserByID(c, id)
+	user, err := h.userUsecase.GetUserByID(r.Context(), id)
 	if err != nil {
-		response.Error(c, errors.InternalError("Failed to get user"))
+		response.Error(w, errors.InternalError("Failed to get user"))
 		return
 	}
 
 	if user == nil {
-		response.NotFound(c, "User not found")
+		response.NotFound(w, "User not found")
 		return
 	}
 
-	response.Success(c, serializers.NewUserSerializer(user).Serialize(), "User retrieved successfully")
+	response.Success(w, serializers.NewUserSerializer(user).Serialize(), "User retrieved successfully")
 }
 
+// ListUsers handles listing users with pagination
 // @Summary List users
 // @Description Get a list of users with pagination
 // @Tags users
@@ -197,45 +209,44 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 // @Failure 403 {object} response.Response "Forbidden"
 // @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /users [get]
-func (h *UserHandler) ListUsers(c *gin.Context) {
-	var req commonValidator.PaginationRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ValidationError(c, err)
-		return
-	}
-
-	if err := req.Validate(); err != nil {
-		response.ValidationError(c, err)
-		return
-	}
+func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	// Parse query parameters
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("page_size")
 
 	page := 1
-	if req.Page > 0 {
-		page = req.Page
+	if pageStr != "" {
+		if pageVal, err := strconv.Atoi(pageStr); err == nil && pageVal > 0 {
+			page = pageVal
+		}
 	}
 
 	pageSize := 10
-	if req.PageSize > 0 {
-		pageSize = req.PageSize
+	if pageSizeStr != "" {
+		if pageSizeVal, err := strconv.Atoi(pageSizeStr); err == nil && pageSizeVal > 0 && pageSizeVal <= 100 {
+			pageSize = pageSizeVal
+		}
 	}
 
 	// Check admin role
-	roleCode, exists := c.Get("roleCode")
-	if !exists || roleCode != string(models.RoleCodeAdmin) {
-		response.Forbidden(c, "Permission denied")
+	roleCode, ok := r.Context().Value(middleware.RoleCodeKey).(string)
+	if !ok || roleCode != string(models.RoleCodeAdmin) {
+		response.Forbidden(w, "Permission denied")
 		return
 	}
 
-	users, totalPages, err := h.userUsecase.ListUsers(c, page, pageSize)
+	users, totalPages, err := h.userUsecase.ListUsers(r.Context(), page, pageSize)
 	if err != nil {
-		response.Error(c, errors.InternalError("Failed to list users"))
+		response.Error(w, errors.InternalError("Failed to list users"))
 		return
 	}
 
-	response.Success(c, gin.H{
+	responseData := map[string]interface{}{
 		"users":       serializers.SerializeUserCollection(users),
 		"page":        page,
 		"page_size":   pageSize,
 		"total_pages": totalPages,
-	}, "Users retrieved successfully")
+	}
+
+	response.Success(w, responseData, "Users retrieved successfully")
 }

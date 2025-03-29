@@ -10,16 +10,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	httpAPI "github.com/huydq/demo/src/api/http"
-	"github.com/huydq/demo/src/domain/repositories"
-	"github.com/huydq/demo/src/infrastructure/auth"
-	"github.com/huydq/demo/src/lib/validator"
+	"github.com/vnlab/makeshop-payment/src/api/http/router"
+	"github.com/vnlab/makeshop-payment/src/domain/repositories"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/lib/validator"
 )
 
 // Server represents the API server
 type Server struct {
-	router     *gin.Engine
 	httpServer *http.Server
 	jwtService *auth.JWTService
 }
@@ -29,24 +27,14 @@ func NewServer(
 	userRepo repositories.UserRepository,
 	roleRepo repositories.RoleRepository,
 ) *Server {
-	// Set Gin mode
-	ginMode := os.Getenv("GIN_MODE")
-	if ginMode != "" {
-		gin.SetMode(ginMode)
-	}
-
 	// Set up validator
 	validator.Setup()
-
-	// Create router
-	router := gin.Default()
 
 	// Initialize services
 	jwtService := auth.NewJWTService()
 
 	// Set up HTTP routes
-	router = httpAPI.SetupRouter(
-		router,
+	router := router.SetupRouter(
 		userRepo,
 		roleRepo,
 		jwtService,
@@ -64,7 +52,6 @@ func NewServer(
 	}
 
 	return &Server{
-		router:     router,
 		httpServer: httpServer,
 		jwtService: jwtService,
 	}

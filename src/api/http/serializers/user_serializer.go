@@ -3,7 +3,7 @@ package serializers
 import (
 	"time"
 
-	"github.com/huydq/demo/src/domain/models"
+	"github.com/vnlab/makeshop-payment/src/domain/models"
 )
 
 // UserSerializer transforms User models into client-friendly representations

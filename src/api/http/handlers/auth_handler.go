@@ -1,13 +1,16 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/huydq/demo/src/api/http/errors"
-	"github.com/huydq/demo/src/api/http/response"
-	"github.com/huydq/demo/src/api/http/serializers"
-	validator "github.com/huydq/demo/src/api/http/validator/auth"
-	"github.com/huydq/demo/src/infrastructure/auth"
-	"github.com/huydq/demo/src/usecase"
+	"net/http"
+
+	"github.com/vnlab/makeshop-payment/src/api/http/errors"
+	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
+	"github.com/vnlab/makeshop-payment/src/api/http/response"
+	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
+	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/auth"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/lib/utils"
+	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 type AuthHandler struct {
@@ -22,6 +25,7 @@ func NewAuthHandler(userUsecase *usecase.UserUsecase, jwtService *auth.JWTServic
 	}
 }
 
+// Login handles user login
 // @Summary Login a user
 // @Description Login with username and password to get an access token
 // @Tags auth
@@ -33,15 +37,15 @@ func NewAuthHandler(userUsecase *usecase.UserUsecase, jwtService *auth.JWTServic
 // @Failure 401 {object} response.Response "Unauthorized"
 // @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /auth/login [post]
-func (h *AuthHandler) Login(c *gin.Context) {
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req validator.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ValidationError(c, err)
+	if err := utils.ParseJSONBody(r, &req); err != nil {
+		response.ValidationError(w, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		response.ValidationError(c, err)
+		response.ValidationError(w, err)
 		return
 	}
 
@@ -50,9 +54,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		Password: req.Password,
 	}
 
-	result, err := h.userUsecase.Login(c, loginReq)
+	result, err := h.userUsecase.Login(r.Context(), loginReq)
 	if err != nil {
-		response.Unauthorized(c, "Invalid email or password")
+		response.Unauthorized(w, "Invalid email or password")
 		return
 	}
 
@@ -62,9 +66,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"token": result.Token,
 		"user":  serializers.NewUserSerializer(result.User).Serialize(),
 	}
-	response.Success(c, responseData, "Login successful")
+	response.Success(w, responseData, "Login successful")
 }
 
+// Register handles user registration
 // @Summary Register a new user
 // @Description Register a new user with the provided details
 // @Tags auth
@@ -75,15 +80,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Failure 400 {object} response.Response "Bad Request"
 // @Failure 500 {object} response.Response "Internal Server Error"
 // @Router /auth/register [post]
-func (h *AuthHandler) Register(c *gin.Context) {
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req validator.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ValidationError(c, err)
+	if err := utils.ParseJSONBody(r, &req); err != nil {
+		response.ValidationError(w, err)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		response.ValidationError(c, err)
+		response.ValidationError(w, err)
 		return
 	}
 
@@ -96,20 +101,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		LastNameKana:  req.LastNameKana,
 	}
 
-	user, err := h.userUsecase.Register(c, registerReq)
+	user, err := h.userUsecase.Register(r.Context(), registerReq)
 	if err != nil {
 		// Check for specific error cases
 		if err.Error() == "email already exists" {
-			response.BadRequest(c, "Email already exists", nil)
+			response.BadRequest(w, "Email already exists", nil)
 			return
 		}
-		response.Error(c, errors.InternalError("Failed to register user"))
+		response.Error(w, errors.InternalError("Failed to register user"))
 		return
 	}
 
-	response.Created(c, serializers.NewUserSerializer(user).Serialize(), "User registered successfully")
+	response.Created(w, serializers.NewUserSerializer(user).Serialize(), "User registered successfully")
 }
 
+// Logout handles user logout
 // @Summary Logout a user
 // @Description Logout a user and invalidate their token
 // @Tags auth
@@ -119,19 +125,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Success 200 {object} response.Response "Success"
 // @Failure 401 {object} response.Response "Unauthorized"
 // @Router /auth/logout [post]
-func (h *AuthHandler) Logout(c *gin.Context) {
-	token, exists := c.Get("token")
-	if !exists {
-		response.Unauthorized(c, "No token found")
-		return
-	}
-
-	tokenStr, ok := token.(string)
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(middleware.TokenKey).(string)
 	if !ok {
-		response.Error(c, errors.InternalError("Invalid token format"))
+		response.Unauthorized(w, "No token found")
 		return
 	}
 
-	h.jwtService.BlacklistToken(tokenStr)
-	response.Success(c, nil, "Logged out successfully")
+	h.jwtService.BlacklistToken(token)
+	response.Success(w, nil, "Logged out successfully")
 }

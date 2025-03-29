@@ -1,12 +1,12 @@
 package validator
 
-import "github.com/huydq/demo/src/lib/validator"
+import "github.com/vnlab/makeshop-payment/src/lib/validator"
 
 type UpdateProfileRequest struct {
-	FirstName     string `json:"first_name" binding:"required"`
-	LastName      string `json:"last_name" binding:"required"`
-	FirstNameKana string `json:"first_name_kana" binding:"required"`
-	LastNameKana  string `json:"last_name_kana" binding:"required"`
+	FirstName     string `json:"first_name" validate:"required"`
+	LastName      string `json:"last_name" validate:"required"`
+	FirstNameKana string `json:"first_name_kana" validate:"required"`
+	LastNameKana  string `json:"last_name_kana" validate:"required"`
 }
 
 func (r *UpdateProfileRequest) Validate() error {

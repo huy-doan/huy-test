@@ -1,10 +1,10 @@
 package validator
 
-import "github.com/huydq/demo/src/lib/validator"
+import "github.com/vnlab/makeshop-payment/src/lib/validator"
 
 type ChangePasswordRequest struct {
-	CurrentPassword string `json:"current_password" binding:"required"`
-	NewPassword     string `json:"new_password" binding:"required,min=6"`
+	CurrentPassword string `json:"current_password" validate:"required"`
+	NewPassword     string `json:"new_password" validate:"required,min=6"`
 }
 
 func (r *ChangePasswordRequest) Validate() error {

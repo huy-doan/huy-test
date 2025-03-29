@@ -1,3 +1,4 @@
+// src/lib/utils/request.go
 package utils
 
 import (
@@ -13,36 +14,41 @@ func ParseJSONBody(r *http.Request, dst interface{}) error {
 	if r.Body == nil {
 		return errors.New("request body is empty")
 	}
-	
+
 	// Read the request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
 	}
 	defer r.Body.Close()
-	
+
 	// If the body is empty, return an error
 	if len(body) == 0 {
 		return errors.New("request body is empty")
 	}
-	
+
 	// Decode the JSON
 	return json.Unmarshal(body, dst)
 }
 
-// GetPathParam extracts a parameter from the URL path
-// Example: for path "/api/users/123", GetPathParam(r, "id", "/api/users/") would return "123"
-func GetPathParam(r *http.Request, paramName, prefix string) string {
+// ExtractIDFromPath extracts an ID from the URL path
+// Example: for path "/api/v1/users/123", ExtractIDFromPath(r, "/api/v1/users/") would return 123
+func ExtractIDFromPath(r *http.Request, prefix string) (int, error) {
 	path := r.URL.Path
 	if len(path) <= len(prefix) {
-		return ""
+		return 0, errors.New("invalid path")
 	}
-	
+
 	// Remove the prefix from the path
-	paramPath := path[len(prefix):]
-	
-	// In a simple case, the rest is the parameter
-	return paramPath
+	idStr := path[len(prefix):]
+
+	// Convert to integer
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return 0, errors.New("invalid ID format")
+	}
+
+	return id, nil
 }
 
 // GetQueryParam retrieves a query parameter with default value
@@ -60,11 +66,11 @@ func GetQueryParamInt(r *http.Request, name string, defaultValue int) int {
 	if strValue == "" {
 		return defaultValue
 	}
-	
+
 	intValue, err := strconv.Atoi(strValue)
 	if err != nil {
 		return defaultValue
 	}
-	
+
 	return intValue
 }
