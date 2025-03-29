@@ -1,7 +1,7 @@
 package main
 
 import (
-	cmd "github.com/huydq/demo/cmd"
+	cmd "github.com/vnlab/makeshop-payment/cmd"
 )
 
 func main() {
