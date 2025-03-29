@@ -10,9 +10,6 @@ import (
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 )
 
-// contextKey is a custom type to avoid key collisions in context
-type contextKey string
-
 const (
 	UserIDKey   contextKey = "userId"
 	EmailKey    contextKey = "email"

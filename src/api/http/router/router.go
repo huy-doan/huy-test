@@ -10,6 +10,7 @@ import (
 	"github.com/vnlab/makeshop-payment/src/domain/models"
 	"github.com/vnlab/makeshop-payment/src/domain/repositories"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
 	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
@@ -18,6 +19,7 @@ func SetupRouter(
 	userRepo repositories.UserRepository,
 	roleRepo repositories.RoleRepository,
 	jwtService *auth.JWTService,
+	appLogger logger.Logger,
 ) http.Handler {
 	// Create main router
 	mux := http.NewServeMux()
@@ -32,6 +34,7 @@ func SetupRouter(
 	// Set up middleware
 	errorMiddleware := middleware.ErrorHandler
 	corsMiddleware := middleware.CORSMiddleware
+	requestLoggerMiddleware := middleware.RequestLoggerMiddleware(appLogger)
 	authMiddleware := middleware.NewAuthMiddleware(jwtService)
 	adminMiddleware := middleware.NewRoleMiddleware(string(models.RoleCodeAdmin))
 
@@ -69,9 +72,18 @@ func SetupRouter(
 	}
 
 	// Apply global middleware
+	// The order is important:
+	// 1. Request Logger - logs all requests and adds trace ID, creates response writer
+	// 2. Error Handler - captures and formats errors, uses response writer from request logger
+	// 3. Performance Monitor - tracks request performance (only for slow requests)
+	// 4. CORS - handles preflight requests and sets headers
+	// 5. WithLogger - adds logger to context for use by other middleware
 	var handler http.Handler = mux
-	handler = errorMiddleware(handler)
 	handler = corsMiddleware(handler)
+	handler = middleware.PerformanceMonitor(appLogger)(handler)
+	handler = errorMiddleware(handler)
+	handler = requestLoggerMiddleware(handler)
+	handler = middleware.WithLogger(appLogger)(handler)
 
 	return handler
 }

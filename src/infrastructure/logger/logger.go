@@ -30,16 +30,16 @@ const (
 const TraceIDKey = "trace_id"
 
 // Logger is the custom structured logger interface
-type Logger interface {
-	Debug(msg string, fields map[string]interface{})
-	Info(msg string, fields map[string]interface{})
-	Warn(msg string, fields map[string]interface{})
-	Error(msg string, fields map[string]interface{})
-	WithTraceID(traceID string) Logger
-	GetTraceID() string
-	WithField(key string, value interface{}) Logger
-	WithFields(fields map[string]interface{}) Logger
-}
+// type Logger interface {
+// 	Debug(msg string, fields map[string]interface{})
+// 	Info(msg string, fields map[string]interface{})
+// 	Warn(msg string, fields map[string]interface{})
+// 	Error(msg string, fields map[string]interface{})
+// 	WithTraceID(traceID string) Logger
+// 	GetTraceID() string
+// 	WithField(key string, value interface{}) Logger
+// 	WithFields(fields map[string]interface{}) Logger
+// }
 
 // loggerImpl is the implementation of Logger interface
 type loggerImpl struct {

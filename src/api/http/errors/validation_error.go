@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	ms "github.com/vnlab/makeshop-payment/src/lib/messages"
 )
 
 // ValidationErrorDetail represents a single validation error
@@ -44,16 +45,16 @@ func FormatValidationError(err error) *Error {
 func getErrorMessage(fieldError validator.FieldError) string {
 	switch fieldError.Tag() {
 	case "required":
-		return fmt.Sprintf("The %s field is required", strings.ToLower(fieldError.Field()))
+		return fmt.Sprintf(ms.ValidateRequired, strings.ToLower(fieldError.Field()))
 	case "email":
-		return fmt.Sprintf("The %s field must be a valid email address", strings.ToLower(fieldError.Field()))
+		return fmt.Sprintf(ms.ValidateEmail, strings.ToLower(fieldError.Field()))
 	case "min":
-		return fmt.Sprintf("The %s field must be at least %s characters", strings.ToLower(fieldError.Field()), fieldError.Param())
+		return fmt.Sprintf(ms.ValidateMin, strings.ToLower(fieldError.Field()), fieldError.Param())
 	case "max":
-		return fmt.Sprintf("The %s field must not be longer than %s characters", strings.ToLower(fieldError.Field()), fieldError.Param())
+		return fmt.Sprintf(ms.ValidateMax, strings.ToLower(fieldError.Field()), fieldError.Param())
 	case "kana":
-		return fmt.Sprintf("The %s field must contain only Katakana characters", strings.ToLower(fieldError.Field()))
+		return fmt.Sprintf(ms.ValidateKana, strings.ToLower(fieldError.Field()))
 	default:
-		return fmt.Sprintf("The %s field failed validation: %s", strings.ToLower(fieldError.Field()), fieldError.Tag())
+		return fmt.Sprintf(ms.ValidateField, strings.ToLower(fieldError.Field()), fieldError.Tag())
 	}
 }

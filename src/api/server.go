@@ -35,16 +35,12 @@ func NewServer(
 	// Initialize services
 	jwtService := auth.NewJWTService()
 
-	// // Add request logger middleware
-	// TODO: add middleware.RequestLoggerMiddleware(appLogger)) for all routes
-
-	// Set up the router
-
-	// Set up HTTP routes
-	router := router.SetupRouter(
+	// Set up HTTP routes with the logger
+	handler := router.SetupRouter(
 		userRepo,
 		roleRepo,
 		jwtService,
+		appLogger,
 	)
 
 	// Create HTTP server
@@ -55,7 +51,7 @@ func NewServer(
 
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
-		Handler: router,
+		Handler: handler,
 	}
 
 	return &Server{
@@ -66,7 +62,6 @@ func NewServer(
 
 // Start starts the API server
 func (s *Server) Start() error {
-	// Get the global logger
 	appLogger := logger.GetLogger()
 	
 	// Set up graceful shutdown
@@ -103,4 +98,3 @@ func (s *Server) Start() error {
 
 	return nil
 }
-

@@ -66,12 +66,8 @@ func (uc *UserUsecase) Login(ctx context.Context, req LoginRequest) (*LoginRespo
 		return nil, err
 	}
 
-	if user == nil {
-		return nil, errors.New("invalid email or password 1")
-	}
-
-	if !user.VerifyPassword(req.Password) {
-		return nil, errors.New("invalid email or password 2")
+	if user == nil || !user.VerifyPassword(req.Password) {
+		return nil, errors.New("Invalid email or password")
 	}
 
 	token, err := uc.jwtService.GenerateToken(user)
