@@ -30,7 +30,7 @@ type TokenClaims struct {
 
 // NewJWTService creates a new JWTService
 func NewJWTService() *JWTService {
-	// load secret key from config file 
+	// load secret key from config file
 	appConfig := config.GetConfig()
 	secret := appConfig.JWTSecret
 	if secret == "" {

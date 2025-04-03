@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-
 	models "github.com/vnlab/makeshop-payment/src/domain/models"
 	"github.com/vnlab/makeshop-payment/src/domain/repositories"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
@@ -13,7 +12,7 @@ import (
 type UserUsecase struct {
 	userRepo   repositories.UserRepository
 	roleRepo   repositories.RoleRepository
-	jwtService *auth.JWTService
+	jwtService      *auth.JWTService
 }
 
 // NewUserUseCase creates a new UserUsecase
@@ -23,9 +22,9 @@ func NewUserUseCase(
 	jwtService *auth.JWTService,
 ) *UserUsecase {
 	return &UserUsecase{
-		userRepo:   userRepo,
-		roleRepo:   roleRepo,
-		jwtService: jwtService,
+		userRepo:        userRepo,
+		roleRepo:        roleRepo,
+		jwtService:      jwtService,
 	}
 }
 
@@ -33,6 +32,7 @@ func NewUserUseCase(
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+	TurnstileToken string `json:"turnstileToken"`
 }
 
 // RegisterRequest represents a user registration request
@@ -67,7 +67,7 @@ func (uc *UserUsecase) Login(ctx context.Context, req LoginRequest) (*LoginRespo
 	}
 
 	if user == nil || !user.VerifyPassword(req.Password) {
-		return nil, errors.New("Invalid email or password")
+		return nil, errors.New("login.failed")
 	}
 
 	token, err := uc.jwtService.GenerateToken(user)

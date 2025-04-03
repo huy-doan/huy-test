@@ -15,31 +15,50 @@ import (
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
 	"github.com/vnlab/makeshop-payment/src/lib/validator"
+	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 // Server represents the API server
 type Server struct {
 	httpServer *http.Server
 	jwtService *auth.JWTService
+	userUsecase            *usecase.UserUsecase
+	auditLogUsecase        *usecase.AuditLogUsecase
+	lockedAccountUseCase   *usecase.LockedAccountUsecase
+	masterAuditLogTypeRepo repositories.MasterAuditLogTypeRepository
 }
 
 // NewServer creates a new API server
 func NewServer(
 	userRepo repositories.UserRepository,
 	roleRepo repositories.RoleRepository,
+	auditLogRepo repositories.AuditLogRepository,
+	lockedAccountRepo repositories.LockedAccountRepository,
+	masterAuditLogTypeRepo repositories.MasterAuditLogTypeRepository,
 	appLogger logger.Logger,
 ) *Server {
 	// Set up validator
 	validator.Setup()
 
+	// get turnstile secret key from environment variable
+	turnstileSecretKey := os.Getenv("TURNSTILE_SECRET_KEY")
+	turnstileEnabled := os.Getenv("TURNSTILE_ENABLED") == "1"
+
 	// Initialize services
+	turnstileService := auth.NewTurnstileService(turnstileSecretKey, turnstileEnabled)
 	jwtService := auth.NewJWTService()
+	auditLogUsecase := usecase.NewAuditLogUsecase(auditLogRepo, masterAuditLogTypeRepo)
+	lockedAccountUseCase := usecase.NewLockedAccountUsecase(lockedAccountRepo, userRepo)
+	userUsecase := usecase.NewUserUseCase(userRepo, roleRepo, jwtService)
 
 	// Set up HTTP routes with the logger
 	handler := router.SetupRouter(
 		userRepo,
 		roleRepo,
 		jwtService,
+		turnstileService,
+		auditLogUsecase,
+		lockedAccountUseCase,
 		appLogger,
 	)
 
@@ -55,15 +74,18 @@ func NewServer(
 	}
 
 	return &Server{
-		httpServer: httpServer,
-		jwtService: jwtService,
+		httpServer:           httpServer,
+		jwtService:           jwtService,
+		userUsecase:          userUsecase,
+		auditLogUsecase:      auditLogUsecase,
+		lockedAccountUseCase: lockedAccountUseCase,
 	}
 }
 
 // Start starts the API server
 func (s *Server) Start() error {
 	appLogger := logger.GetLogger()
-	
+
 	// Set up graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

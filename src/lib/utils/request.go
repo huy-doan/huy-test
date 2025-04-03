@@ -1,4 +1,3 @@
-// src/lib/utils/request.go
 package utils
 
 import (

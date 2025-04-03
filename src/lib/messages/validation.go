@@ -1,10 +1,10 @@
 package messages
 
 const (
-	ValidateRequired = "The %s field is required"
-	ValidateEmail    = "The %s field must be a valid email address"
-	ValidateMin      = "The %s field must be at least %s characters"
-	ValidateMax      = "The %s field must not be longer than %s characters"
-	ValidateKana     = "The %s field must contain only Katakana characters"
-	ValidateField    = "The %s field failed validation: %s"
+	ValidateRequired = "%s フィールドは必須です"
+	ValidateEmail    = "%s フィールドは有効なメールアドレスである必要があります"
+	ValidateMin      = "%s フィールドは最低 %s 文字以上である必要があります"
+	ValidateMax      = "%s フィールドは最大 %s 文字以内である必要があります"
+	ValidateKana     = "%s フィールドはカタカナのみを含める必要があります"
+	ValidateField    = "%s フィールドの検証に失敗しました: %s"
 )

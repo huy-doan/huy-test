@@ -31,9 +31,9 @@ const (
 	TypeTimeoutError         = "TIMEOUT"
 
 	// Error Messages
-	MsgInvalidCredentials    = "Invalid email or password"
-	MsgEmailAlreadyExists    = "Email already exists"
-	MsgUserNotFound          = "User not found"
-	MsgInvalidPassword       = "Current password is incorrect"
-	MsgAccountLocked         = "Account is locked"
+	MsgInvalidCredentials = "メールアドレスまたはパスワードが無効です"
+	MsgEmailAlreadyExists = "このメールアドレスは既に登録されています"
+	MsgUserNotFound       = "ユーザーが見つかりません"
+	MsgInvalidPassword    = "現在のパスワードが正しくありません"
+	MsgAccountLocked      = "アカウントがロックされています"
 )

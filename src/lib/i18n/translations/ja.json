@@ -1,0 +1,68 @@
+{
+  "account.locked": {
+    "id": "account.locked",
+    "translation": {
+      "ja": "アカウントがロックされています"
+    }
+  },
+  "account.temp_locked": {
+    "id": "account.temp_locked",
+    "translation": {
+      "ja": "アカウントが一時的にロックされています"
+    }
+  },
+  "account.perm_locked": {
+    "id": "account.perm_locked",
+    "translation": {
+      "ja": "アカウントが永久にロックされています"
+    }
+  },
+  "account.unauthorized": {
+    "id": "account.unauthorized",
+    "translation": {
+      "ja": "この操作を実行する権限がありません"
+    }
+  },
+  "login.success": {
+    "id": "login.success",
+    "translation": {
+      "ja": "ログインに成功しました"
+    }
+  },
+  "login.failed": {
+    "id": "login.failed",
+    "translation": {
+      "ja": "メールアドレスまたはパスワードが正しくありません"
+    }
+  },
+  "logout.success": {
+    "id": "logout.success",
+    "translation": {
+      "ja": "ログアウトに成功しました"
+    }
+  },
+  "turnstile.verify_failed": {
+    "id": "turnstile.verify_failed",
+    "translation": {
+      "ja": "Turnstileトークンの検証に失敗しました"
+    }
+  },
+  "turnstile.invalid_token": {
+    "id": "turnstile.invalid_token",
+    "translation": {
+      "ja": "無効なTurnstileトークンです"
+    }
+  },
+  "login.attempts_remaining_temp_lock": {
+    "id": "login.attempts_remaining_temp_lock",
+    "translation": {
+      "ja": "ログインに失敗しました。アカウントが一時的にロックされるまで、あと%d回の試行が可能です。"
+    }
+  },
+  "login.attempts_remaining_perm_lock": {
+    "id": "login.attempts_remaining_perm_lock",
+    "translation": {
+      "ja": "あと%d回ログインを試みることができます"
+    }
+  }
+}

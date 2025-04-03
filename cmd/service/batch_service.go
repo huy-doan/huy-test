@@ -7,7 +7,7 @@ import (
 )
 
 type BatchService struct {
-	DB          *gorm.DB
+	DB *gorm.DB
 }
 
 // NewBatchService init
@@ -19,7 +19,7 @@ func NewBatchService() (*BatchService, error) {
 		return nil, err
 	}
 	return &BatchService{
-		DB:          db,
+		DB: db,
 	}, nil
 }
 

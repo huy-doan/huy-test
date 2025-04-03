@@ -15,25 +15,26 @@ func (MasterAuditLogType) TableName() string {
 
 // Audit log type constants
 const (
-	AuditTypeUserLogin                  uint8 = 1
-	AuditTypeUserLogout                 uint8 = 2
-	AuditTypePasswordChange             uint8 = 3
-	AuditTypeUserCreate                 uint8 = 4
-	AuditTypeUserUpdate                 uint8 = 5
-	AuditTypeUserDelete                 uint8 = 6
-	AuditTypeRoleAssign                 uint8 = 7
-	AuditTypeRoleUpdate                 uint8 = 8
-	AuditTypeTransactionBusinessApprove uint8 = 9
-	AuditTypeTransactionBusinessReject  uint8 = 10
-	AuditTypeTransactionAccountApprove  uint8 = 11
-	AuditTypeTransactionAccountReject   uint8 = 12
-	AuditTypeTransferBusinessApprove    uint8 = 13
-	AuditTypeTransferBusinessReject     uint8 = 14
-	AuditTypeTransferAccountApprove     uint8 = 15
-	AuditTypeTransferAccountReject      uint8 = 16
-	AuditTypeMFAEnabled                 uint8 = 17
-	AuditTypeMFADisabled                uint8 = 18
-	AuditTypeAccountLocked              uint8 = 19
-	AuditTypeAccountUnlocked            uint8 = 20
-	AuditTypeAPIAccess                  uint8 = 21
+	AuditTypeUserLogin                  int = 1
+	AuditTypeUserLogout                 int = 2
+	AuditTypePasswordChange             int = 3
+	AuditTypeUserCreate                 int = 4
+	AuditTypeUserUpdate                 int = 5
+	AuditTypeUserDelete                 int = 6
+	AuditTypeRoleAssign                 int = 7
+	AuditTypeRoleUpdate                 int = 8
+	AuditTypeTransactionBusinessApprove int = 9
+	AuditTypeTransactionBusinessReject  int = 10
+	AuditTypeTransactionAccountApprove  int = 11
+	AuditTypeTransactionAccountReject   int = 12
+	AuditTypeTransferBusinessApprove    int = 13
+	AuditTypeTransferBusinessReject     int = 14
+	AuditTypeTransferAccountApprove     int = 15
+	AuditTypeTransferAccountReject      int = 16
+	AuditTypeMFAEnabled                 int = 17
+	AuditTypeMFADisabled                int = 18
+	AuditTypeAccountLocked              int = 19
+	AuditTypeAccountUnlocked            int = 20
+	AuditTypeAPIAccess                  int = 21
 )
+

@@ -29,18 +29,6 @@ const (
 // TraceIDKey is the context key for trace ID
 const TraceIDKey = "trace_id"
 
-// Logger is the custom structured logger interface
-// type Logger interface {
-// 	Debug(msg string, fields map[string]interface{})
-// 	Info(msg string, fields map[string]interface{})
-// 	Warn(msg string, fields map[string]interface{})
-// 	Error(msg string, fields map[string]interface{})
-// 	WithTraceID(traceID string) Logger
-// 	GetTraceID() string
-// 	WithField(key string, value interface{}) Logger
-// 	WithFields(fields map[string]interface{}) Logger
-// }
-
 // loggerImpl is the implementation of Logger interface
 type loggerImpl struct {
 	logger       *logrus.Logger
@@ -89,7 +77,7 @@ func InitLogger(config *Config) {
 		logger.SetFormatter(&logrus.JSONFormatter{
 			TimestampFormat: time.RFC3339,
 		})
-		
+
 		// We'll handle different log levels in our custom methods
 		if config.EnableConsoleLog {
 			logger.SetOutput(os.Stdout)
@@ -111,7 +99,7 @@ func InitLogger(config *Config) {
 func GetLogger() Logger {
 	instanceMutex.RLock()
 	defer instanceMutex.RUnlock()
-	
+
 	if instance == nil {
 		appConfig := config.LoadConfig()
 
@@ -152,7 +140,7 @@ func NewLogger(config *Config) Logger {
 	logger.SetFormatter(&logrus.JSONFormatter{
 		TimestampFormat: time.RFC3339,
 	})
-	
+
 	// We'll handle different log levels in our custom methods
 	if config.EnableConsoleLog {
 		logger.SetOutput(os.Stdout)
@@ -181,12 +169,12 @@ func (l *loggerImpl) WithTraceID(traceID string) Logger {
 		extraFields:  make(map[string]interface{}),
 		logDirectory: l.logDirectory,
 	}
-	
+
 	// Copy extra fields
 	for k, v := range l.extraFields {
 		newLogger.extraFields[k] = v
 	}
-	
+
 	return newLogger
 }
 
@@ -198,15 +186,15 @@ func (l *loggerImpl) WithField(key string, value interface{}) Logger {
 		extraFields:  make(map[string]interface{}),
 		logDirectory: l.logDirectory,
 	}
-	
+
 	// Copy existing extra fields
 	for k, v := range l.extraFields {
 		newLogger.extraFields[k] = v
 	}
-	
+
 	// Add new field
 	newLogger.extraFields[key] = value
-	
+
 	return newLogger
 }
 
@@ -218,17 +206,17 @@ func (l *loggerImpl) WithFields(fields map[string]interface{}) Logger {
 		extraFields:  make(map[string]interface{}),
 		logDirectory: l.logDirectory,
 	}
-	
+
 	// Copy existing extra fields
 	for k, v := range l.extraFields {
 		newLogger.extraFields[k] = v
 	}
-	
+
 	// Add new fields
 	for k, v := range fields {
 		newLogger.extraFields[k] = v
 	}
-	
+
 	return newLogger
 }
 
@@ -242,16 +230,16 @@ func (l *loggerImpl) makeFields(fields map[string]interface{}) logrus.Fields {
 	if fields == nil {
 		fields = make(map[string]interface{})
 	}
-	
+
 	// Add trace ID and timestamp
 	fields[TraceIDKey] = l.traceID
 	fields["timestamp"] = time.Now().UTC().Format(time.RFC3339)
-	
+
 	// Add extra fields
 	for k, v := range l.extraFields {
 		fields[k] = v
 	}
-	
+
 	return logrus.Fields(fields)
 }
 
@@ -260,7 +248,7 @@ func (l *loggerImpl) getLogFile(level logrus.Level) *os.File {
 	// Lock for file operations
 	l.fileMutex.Lock()
 	defer l.fileMutex.Unlock()
-	
+
 	// Use the stored log directory
 	var logPath string
 	switch level {
@@ -275,7 +263,7 @@ func (l *loggerImpl) getLogFile(level logrus.Level) *os.File {
 	default:
 		logPath = filepath.Join(l.logDirectory, "app.log")
 	}
-	
+
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		// If we can't open the log file, log the error and fallback to stdout
@@ -305,14 +293,14 @@ func (l *loggerImpl) logToFile(level logrus.Level, entry *logrus.Entry) {
 
 	// Write the log entry to the file
 	switch level {
-		case logrus.DebugLevel:
-			fileLogger.WithFields(entry.Data).Debug(entry.Message)
-		case logrus.InfoLevel:
-			fileLogger.WithFields(entry.Data).Info(entry.Message)
-		case logrus.WarnLevel:
-			fileLogger.WithFields(entry.Data).Warn(entry.Message)
-		case logrus.ErrorLevel:
-			fileLogger.WithFields(entry.Data).Error(entry.Message)
+	case logrus.DebugLevel:
+		fileLogger.WithFields(entry.Data).Debug(entry.Message)
+	case logrus.InfoLevel:
+		fileLogger.WithFields(entry.Data).Info(entry.Message)
+	case logrus.WarnLevel:
+		fileLogger.WithFields(entry.Data).Warn(entry.Message)
+	case logrus.ErrorLevel:
+		fileLogger.WithFields(entry.Data).Error(entry.Message)
 	}
 }
 
@@ -326,10 +314,10 @@ func (l *loggerImpl) Debug(msg string, fields map[string]interface{}) {
 			Level:   logrus.DebugLevel,
 			Message: msg,
 		}
-		
+
 		// Write to the console if enabled
 		l.logger.WithFields(entry.Data).Debug(msg)
-		
+
 		// Write to the appropriate log file
 		l.logToFile(logrus.DebugLevel, entry)
 	}
@@ -345,10 +333,10 @@ func (l *loggerImpl) Info(msg string, fields map[string]interface{}) {
 			Level:   logrus.InfoLevel,
 			Message: msg,
 		}
-		
+
 		// Write to the console if enabled
 		l.logger.WithFields(entry.Data).Info(msg)
-		
+
 		// Write to the appropriate log file
 		l.logToFile(logrus.InfoLevel, entry)
 	}
@@ -364,10 +352,10 @@ func (l *loggerImpl) Warn(msg string, fields map[string]interface{}) {
 			Level:   logrus.WarnLevel,
 			Message: msg,
 		}
-		
+
 		// Write to the console if enabled
 		l.logger.WithFields(entry.Data).Warn(msg)
-		
+
 		// Write to the appropriate log file
 		l.logToFile(logrus.WarnLevel, entry)
 	}
@@ -383,10 +371,10 @@ func (l *loggerImpl) Error(msg string, fields map[string]interface{}) {
 			Level:   logrus.ErrorLevel,
 			Message: msg,
 		}
-		
+
 		// Write to the console if enabled
 		l.logger.WithFields(entry.Data).Error(msg)
-		
+
 		// Write to the appropriate log file
 		l.logToFile(logrus.ErrorLevel, entry)
 	}

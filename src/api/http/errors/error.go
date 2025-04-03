@@ -16,7 +16,7 @@ type Error struct {
 	Type       string `json:"type"`
 	StatusCode int    `json:"status_code"`
 	Details    any    `json:"details,omitempty"`
-	
+
 	// For internal tracking - not exposed in JSON response
 	Cause      error  `json:"-"`
 	StackTrace string `json:"-"`
@@ -112,11 +112,11 @@ func DatabaseError(message string, cause error) *Error {
 
 func ExternalServiceError(message string, service string, cause error) *Error {
 	return NewErrorWithCause(
-		ms.CodeExternalServiceError, 
-		message, 
-		ms.TypeExternalServiceError, 
-		http.StatusInternalServerError, 
-		map[string]string{"service": service}, 
+		ms.CodeExternalServiceError,
+		message,
+		ms.TypeExternalServiceError,
+		http.StatusInternalServerError,
+		map[string]string{"service": service},
 		cause,
 	)
 }

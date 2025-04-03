@@ -1,4 +1,3 @@
-// src/api/http/middleware/request_logger.go
 package middleware
 
 import (
@@ -23,7 +22,7 @@ func RequestLoggerMiddleware(appLogger logger.Logger) func(http.Handler) http.Ha
 
 			// Log the request
 			startTime := time.Now()
-			
+
 			// Create a custom response writer to capture the status code
 			rw := &responseStatusWriter{
 				ResponseWriter: w,
@@ -51,34 +50,6 @@ func RequestLoggerMiddleware(appLogger logger.Logger) func(http.Handler) http.Ha
 
 			// Call the next handler
 			next.ServeHTTP(rw, r)
-
-			// // Log response after the handler has processed the request
-			// responseFields := map[string]interface{}{
-			// 	"status_code": rw.statusCode,
-			// 	"duration_ms": time.Since(startTime).Milliseconds(),
-			// 	"method":      r.Method,
-			// 	"path":        r.URL.Path,
-			// }
-
-			// // Get more details for error logs
-			// if rw.statusCode >= 400 {
-			// 	// Add request headers for debugging (excluding sensitive ones)
-			// 	headers := make(map[string]string)
-			// 	for key, values := range r.Header {
-			// 		// Skip sensitive headers
-			// 		if key != "Authorization" && key != "Cookie" && key != "Set-Cookie" {
-			// 			if len(values) > 0 {
-			// 				headers[key] = values[0]
-			// 			}
-			// 		}
-			// 	}
-				
-			// 	responseFields["headers"] = headers
-			// 	responseFields["query_params"] = r.URL.Query()
-				
-			// 	// Log the detailed error
-			// 	requestLogger.Error("Request error", responseFields)
-			// }
 		})
 	}
 }

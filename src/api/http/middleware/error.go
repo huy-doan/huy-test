@@ -1,4 +1,3 @@
-// src/api/http/middleware/error.go
 package middleware
 
 import (
@@ -38,7 +37,7 @@ func ErrorHandler(next http.Handler) http.Handler {
 		// Create a copy of request body for logging if needed
 		var requestBody []byte
 		var err error
-		
+
 		// Only capture request body on POST, PUT, PATCH requests
 		if (r.Method == "POST" || r.Method == "PUT" || r.Method == "PATCH") && r.Body != nil {
 			requestBody, r.Body, err = drainAndReplaceBody(r.Body, MaxBodyLogSize)
@@ -65,7 +64,7 @@ func ErrorHandler(next http.Handler) http.Handler {
 			if rec := recover(); rec != nil {
 				// Get stack trace
 				stackTrace := debug.Stack()
-				
+
 				// Create error details
 				errorDetails := map[string]interface{}{
 					"error":       fmt.Sprintf("%v", rec),
@@ -75,12 +74,12 @@ func ErrorHandler(next http.Handler) http.Handler {
 					"headers":     sanitizeHeaders(r.Header),
 					"query":       r.URL.Query(),
 				}
-				
+
 				// Add request body if available
 				if len(rw.requestBody) > 0 {
 					errorDetails["request_body"] = sanitizeRequestBody(rw.requestBody)
 				}
-				
+
 				// Log the panic with all details
 				rw.logger.Error("Panic in HTTP handler", errorDetails)
 
@@ -97,7 +96,7 @@ func ErrorHandler(next http.Handler) http.Handler {
 		if rw.err != nil {
 			// Log the error with detailed info
 			logErrorWithDetails(rw, rw.err)
-			
+
 			// Handle and format the error for the response
 			handleError(w, rw.err)
 		}
@@ -107,12 +106,12 @@ func ErrorHandler(next http.Handler) http.Handler {
 // responseWriter is a custom ResponseWriter that keeps track of errors
 type responseWriter struct {
 	http.ResponseWriter
-	statusCode   int
-	err          error
-	logger       logger.Logger
-	request      *http.Request
-	respWriter   *responseStatusWriter // Reference to the request logger's response writer
-	requestBody  []byte                // Copy of request body for logging
+	statusCode  int
+	err         error
+	logger      logger.Logger
+	request     *http.Request
+	respWriter  *responseStatusWriter // Reference to the request logger's response writer
+	requestBody []byte                // Copy of request body for logging
 }
 
 // WriteHeader overrides the WriteHeader to keep track of response status code
@@ -138,17 +137,17 @@ func logErrorStatusWithDetails(rw *responseWriter, statusCode int, err error) {
 	if startTime, ok := rw.request.Context().Value("request_start_time").(time.Time); ok {
 		duration = time.Since(startTime)
 	}
-	
+
 	// Build detailed error log
 	logFields := map[string]interface{}{
-		"status_code": statusCode,
-		"path":        rw.request.URL.Path,
-		"method":      rw.request.Method,
-		"duration_ms": duration.Milliseconds(),
-		"headers":     sanitizeHeaders(rw.request.Header),
+		"status_code":  statusCode,
+		"path":         rw.request.URL.Path,
+		"method":       rw.request.Method,
+		"duration_ms":  duration.Milliseconds(),
+		"headers":      sanitizeHeaders(rw.request.Header),
 		"query_params": rw.request.URL.Query(),
 	}
-	
+
 	// Add error information if available
 	if err != nil {
 		var apiErr *apiErrors.Error
@@ -159,7 +158,7 @@ func logErrorStatusWithDetails(rw *responseWriter, statusCode int, err error) {
 		} else {
 			logFields["error"] = err.Error()
 		}
-		
+
 		// Include validation errors
 		var validationErrors validator.ValidationErrors
 		if errors.As(err, &validationErrors) {
@@ -174,12 +173,12 @@ func logErrorStatusWithDetails(rw *responseWriter, statusCode int, err error) {
 			logFields["validation_errors"] = validationDetails
 		}
 	}
-	
+
 	// Add sanitized request body if available
 	if len(rw.requestBody) > 0 {
 		logFields["request_body"] = sanitizeRequestBody(rw.requestBody)
 	}
-	
+
 	// Log with appropriate level based on status code
 	if statusCode >= 500 {
 		// Include stack trace for 5xx errors
@@ -198,7 +197,7 @@ func logErrorWithDetails(rw *responseWriter, err error) {
 	if errors.As(err, &apiErr) {
 		statusCode = apiErr.StatusCode
 	}
-	
+
 	// Log the error with all available details
 	logErrorStatusWithDetails(rw, statusCode, err)
 }
@@ -258,22 +257,22 @@ func drainAndReplaceBody(body io.ReadCloser, maxSize int64) ([]byte, io.ReadClos
 // sanitizeHeaders removes sensitive information from headers
 func sanitizeHeaders(headers http.Header) map[string]string {
 	result := make(map[string]string)
-	
+
 	for key, values := range headers {
 		// Skip sensitive headers
 		keyVal := strings.ToLower(key)
-		if key == "Authorization" || key == "Cookie" || key == "Set-Cookie" || 
-		   strings.Contains(keyVal, "token") || 
-		   strings.Contains(keyVal, "password") ||
-		   strings.Contains(keyVal, "secret") {
+		if key == "Authorization" || key == "Cookie" || key == "Set-Cookie" ||
+			strings.Contains(keyVal, "token") ||
+			strings.Contains(keyVal, "password") ||
+			strings.Contains(keyVal, "secret") {
 			continue
 		}
-		
+
 		if len(values) > 0 {
 			result[key] = values[0]
 		}
 	}
-	
+
 	return result
 }
 
@@ -290,17 +289,17 @@ func sanitizeRequestBody(bodyBytes []byte) interface{} {
 		}
 		return bodyStr
 	}
-	
+
 	// Sanitize JSON fields
 	for key := range bodyData {
 		// Hide sensitive fields
 		keyVal := strings.ToLower(key)
-		if strings.Contains(keyVal, "password") || 
-		   strings.Contains(keyVal, "username") || 
-		   strings.Contains(keyVal, "email") || 
-		   strings.Contains(keyVal, "token") || 
-		   strings.Contains(keyVal, "secret") || 
-		   strings.Contains(keyVal, "key") {
+		if strings.Contains(keyVal, "password") ||
+			strings.Contains(keyVal, "username") ||
+			strings.Contains(keyVal, "email") ||
+			strings.Contains(keyVal, "token") ||
+			strings.Contains(keyVal, "secret") ||
+			strings.Contains(keyVal, "key") {
 			bodyData[key] = "[REDACTED]"
 		}
 	}

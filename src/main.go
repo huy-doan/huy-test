@@ -10,6 +10,7 @@ import (
 	"github.com/vnlab/makeshop-payment/src/api"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
 )
@@ -42,15 +43,20 @@ func init() {
 // @in header
 // @name Authorization
 func main() {
+	// Initialize i18n
+	if err := middleware.InitI18n(); err != nil {
+		log.Fatalf("Failed to initialize i18n: %v", err)
+	}
+
 	// Connect to database
 	appConfig := config.LoadConfig()
 
 	// Initialize logger as a singleton
 	logger.InitLogger(&logger.Config{
-		LogLevel:        appConfig.LogLevel,
-		LogDirectory:    appConfig.LogDirectory,
+		LogLevel:         appConfig.LogLevel,
+		LogDirectory:     appConfig.LogDirectory,
 		EnableConsoleLog: appConfig.EnableConsoleLog,
-		EnableSQLLog:    appConfig.EnableSQLLog,
+		EnableSQLLog:     appConfig.EnableSQLLog,
 	})
 
 	// Get the global logger instance
@@ -70,9 +76,19 @@ func main() {
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(db)
 	roleRepo := repositories.NewRoleRepository(db)
+	auditLogRepo := repositories.NewAuditLogRepository(db)
+	lockedAccountRepo := repositories.NewLockedAccountRepository(db)
+	masterAuditLogTypeRepo := repositories.NewMasterAuditLogTypeRepository(db)
 
 	// Create and start API server
-	server := api.NewServer(userRepo, roleRepo, appLogger)
+	server := api.NewServer(
+		userRepo,
+		roleRepo,
+		auditLogRepo,
+		lockedAccountRepo,
+		masterAuditLogTypeRepo,
+		appLogger,
+	)
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

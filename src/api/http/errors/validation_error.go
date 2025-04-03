@@ -36,7 +36,7 @@ func FormatValidationError(err error) *Error {
 
 	message := "Validation failed"
 	if len(details) > 0 {
-		message = fmt.Sprintf("Validation failed: %s", details[0].Message)
+		message = fmt.Sprintf("%s", details[0].Message)
 	}
 
 	return ValidationError(message, details)

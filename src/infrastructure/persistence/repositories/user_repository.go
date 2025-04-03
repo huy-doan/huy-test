@@ -38,7 +38,7 @@ func (r *UserRepositoryImpl) FindByID(ctx context.Context, id int) (*models.User
 // FindByEmail finds a user by email
 func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-	result := r.db.Preload("Role").Where("emails = ?", email).First(&user)
+	result := r.db.Preload("Role").Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil if user not found

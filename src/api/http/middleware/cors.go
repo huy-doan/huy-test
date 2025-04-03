@@ -1,4 +1,3 @@
-// src/api/http/middleware/cors.go
 package middleware
 
 import (

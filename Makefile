@@ -1,4 +1,4 @@
-.PHONY: help run generate-graphql swagger fmt migrate-create migrate-up migrate-down shell
+.PHONY: help run swagger fmt migrate-create migrate-up migrate-down shell
 
 # Variables
 API_NAME = msp-api
@@ -9,12 +9,12 @@ DOCKER_PORT = 3010
 
 # Tools
 GO = go
-
+MYSQL_CONNECT = "root:rootpw@tcp(mysql:3306)/msp-db-dev"
+BACKEND_CONTAINER = makeshop_payment_backend_dev_1
 # Colors
 COLOR_RESET = \033[0m
 COLOR_GREEN = \033[32m
 COLOR_YELLOW = \033[33m
-
 
 help: ## Display available commands
 	@echo "$(COLOR_GREEN)Available commands:$(COLOR_RESET)"
@@ -22,7 +22,7 @@ help: ## Display available commands
 
 ssh-be: ## SSH to the container
 	@echo "$(COLOR_GREEN)SSH to the BACKEND...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 sh
+	docker exec -it $(BACKEND_CONTAINER) sh
 
 ssh-mysql: ## SSH to the container
 	@echo "$(COLOR_GREEN)SSH to the MYSQL...$(COLOR_RESET)"
@@ -30,41 +30,41 @@ ssh-mysql: ## SSH to the container
 
 run: ## Run the API locally
 	@echo "$(COLOR_GREEN)Running $(API_NAME) on http://localhost:$(DOCKER_PORT)...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 go run $(MAIN_FILE)
-
-generate-graphql: ## Generate GraphQL code from schema
-	@echo "$(COLOR_GREEN)Generating GraphQL code...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 go run github.com/99designs/gqlgen generate
-	@echo "$(COLOR_GREEN)GraphQL code generated!$(COLOR_RESET)"
+	docker exec -it $(BACKEND_CONTAINER) go run $(MAIN_FILE)
 
 swagger: ## Generate Swagger documentation
 	@echo "$(COLOR_GREEN)Generating Swagger documentation...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 swag init -g src/main.go
+	docker exec -it $(BACKEND_CONTAINER) swag init -g src/main.go
 	@echo "$(COLOR_GREEN)Swagger documentation generated!$(COLOR_RESET)"
 
 fmt: ## Format code
 	@echo "$(COLOR_GREEN)Formatting code...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 $(GO) fmt ./...
+	docker exec -it $(BACKEND_CONTAINER) $(GO) fmt ./...
 	@echo "$(COLOR_GREEN)Formatting complete!$(COLOR_RESET)"
 
 migrate-create: ## Run database migrations create
 	@echo "$(COLOR_GREEN)Running create Migrations...$(COLOR_RESET)"
 	@read -p "Enter migration name: " name; \
-   	docker exec -it makeshop_payment_backend_1 goose -dir ./config/migrations create $$name sql
+   	docker exec -it $(BACKEND_CONTAINER) goose -dir ./config/migrations create $$name sql
 	@echo "$(COLOR_GREEN)Create Migrations complete!$(COLOR_RESET)"
 
 migrate-up: ## Run database migrations up
 	@echo "$(COLOR_GREEN)Running database migrations up...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 goose -dir ./config/migrations mysql "root:rootpw@tcp(mysql:3306)/msp-db-dev" up
+	docker exec -it $(BACKEND_CONTAINER) goose -dir ./config/migrations mysql $(MYSQL_CONNECT) up
 	@echo "$(COLOR_GREEN)Migrations complete!$(COLOR_RESET)"
 
 migrate-down: ## Run database migrations down
 	@echo "$(COLOR_GREEN)Running database migrations down...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 goose -dir ./config/migrations mysql "root:rootpw@tcp(mysql:3306)/msp-db-dev" down
+	docker exec -it $(BACKEND_CONTAINER) goose -dir ./config/migrations mysql $(MYSQL_CONNECT) down
 	@echo "$(COLOR_GREEN)Migrations complete!$(COLOR_RESET)"
+
+seed-master: ## Run database seed-master
+	@echo "$(COLOR_GREEN)Running seeds master...$(COLOR_RESET)"
+	docker exec -it $(BACKEND_CONTAINER) goose --no-versioning -dir ./config/seeds/master mysql $(MYSQL_CONNECT) up
+	@echo "$(COLOR_GREEN)Run seeds master complete!$(COLOR_RESET)"
 
 shell: ## Run shell in the container
 	@$(eval ARGS := $(filter-out $@,$(MAKECMDGOALS)))
 	@echo "$(COLOR_GREEN)Running Shell...$(COLOR_RESET)"
-	docker exec -it makeshop_payment_backend_1 go run main.go $(ARGS)
+	docker exec -it $(BACKEND_CONTAINER) go run main.go $(ARGS)
 	@echo "$(COLOR_GREEN)Running Shell complete!$(COLOR_RESET)"

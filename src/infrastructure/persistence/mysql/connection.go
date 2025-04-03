@@ -21,11 +21,11 @@ const (
 // NewConnection creates a new MySQL database connection using GORM
 func NewConnection(appLogger logger.Logger) (*gorm.DB, error) {
 	appConfig := config.GetConfig()
-	dbHost     := appConfig.DBHost
-	dbPort     := appConfig.DBPort
-	dbUser     := appConfig.DBUser
+	dbHost := appConfig.DBHost
+	dbPort := appConfig.DBPort
+	dbUser := appConfig.DBUser
 	dbPassword := appConfig.DBPassword
-	dbName     := appConfig.DBName
+	dbName := appConfig.DBName
 
 	// Configure connection string with Tokyo timezone
 	loc := url.QueryEscape("Asia/Tokyo")
@@ -34,10 +34,10 @@ func NewConnection(appLogger logger.Logger) (*gorm.DB, error) {
 
 	// Create SQL logger that integrates with our custom logger
 	sqlLogger := logger.NewSQLLogger(&logger.Config{
-		LogLevel:      appConfig.SqlLogLevel,
-		LogDirectory:  appConfig.LogDirectory,
+		LogLevel:         appConfig.SqlLogLevel,
+		LogDirectory:     appConfig.LogDirectory,
 		EnableConsoleLog: appConfig.EnableConsoleLog,
-		EnableSQLLog:  appConfig.EnableSQLLog,
+		EnableSQLLog:     appConfig.EnableSQLLog,
 	}, appLogger)
 
 	// Open database connection with our custom SQL logger

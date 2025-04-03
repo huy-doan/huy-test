@@ -1,4 +1,3 @@
-// src/api/http/middleware/performance.go
 package middleware
 
 import (

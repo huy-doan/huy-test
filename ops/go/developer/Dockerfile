@@ -14,7 +14,6 @@ COPY . /app
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@v3.7.0 && \
     go install github.com/cosmtrek/air@v1.27.3 && \
-    go install github.com/99designs/gqlgen@v0.17.24 && \
     go install github.com/swaggo/swag/cmd/swag@v1.16.3
 
 CMD ["sh", "-c", "air -c /app/.air.toml"]

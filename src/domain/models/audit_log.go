@@ -4,7 +4,7 @@ package models
 type AuditLog struct {
 	ID            int     `json:"id"`
 	UserID        *int    `json:"user_id"`
-	AuditTypeID   uint8   `json:"audit_type_id"`
+	AuditTypeID   int   `json:"audit_type_id"`
 	Description   *string `json:"description"`
 	TransactionID *int    `json:"transaction_id"`
 	OutcomingID   *int    `json:"outcoming_id"`
@@ -14,7 +14,6 @@ type AuditLog struct {
 
 	// Relationships
 	User               *User               `json:"user"`
-	MasterAuditLogType *MasterAuditLogType `json:"master_audit_log_type"`
 }
 
 // TableName specifies the table name for AuditLog

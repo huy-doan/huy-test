@@ -19,6 +19,9 @@ func SetupRouter(
 	userRepo repositories.UserRepository,
 	roleRepo repositories.RoleRepository,
 	jwtService *auth.JWTService,
+	turnstileService *auth.TurnstileService,
+	auditLogUsecase *usecase.AuditLogUsecase,
+	lockedAccountUsecase *usecase.LockedAccountUsecase,
 	appLogger logger.Logger,
 ) http.Handler {
 	// Create main router
@@ -28,7 +31,7 @@ func SetupRouter(
 	userUsecase := usecase.NewUserUseCase(userRepo, roleRepo, jwtService)
 
 	// Create handlers
-	authHandler := handlers.NewAuthHandler(userUsecase, jwtService)
+	authHandler := handlers.NewAuthHandler(userUsecase, jwtService, turnstileService, auditLogUsecase, lockedAccountUsecase)
 	userHandler := handlers.NewUserHandler(userUsecase, jwtService)
 
 	// Set up middleware
@@ -37,6 +40,7 @@ func SetupRouter(
 	requestLoggerMiddleware := middleware.RequestLoggerMiddleware(appLogger)
 	authMiddleware := middleware.NewAuthMiddleware(jwtService)
 	adminMiddleware := middleware.NewRoleMiddleware(string(models.RoleCodeAdmin))
+	languageMiddleware := middleware.LanguageMiddleware
 
 	// Health check endpoint
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +53,7 @@ func SetupRouter(
 	mux.HandleFunc("POST /api/v1/auth/login", authHandler.Login)
 	mux.HandleFunc("POST /api/v1/auth/register", authHandler.Register)
 	mux.HandleFunc("POST /api/v1/auth/logout", authMiddleware(authHandler.Logout))
+	mux.HandleFunc("GET /api/v1/auth/me", authMiddleware(authHandler.Me))
 
 	// API v1 routes - User
 	mux.HandleFunc("GET /api/v1/users/profile", authMiddleware(userHandler.GetProfile))
@@ -73,17 +78,13 @@ func SetupRouter(
 
 	// Apply global middleware
 	// The order is important:
-	// 1. Request Logger - logs all requests and adds trace ID, creates response writer
-	// 2. Error Handler - captures and formats errors, uses response writer from request logger
-	// 3. Performance Monitor - tracks request performance (only for slow requests)
-	// 4. CORS - handles preflight requests and sets headers
-	// 5. WithLogger - adds logger to context for use by other middleware
 	var handler http.Handler = mux
 	handler = corsMiddleware(handler)
 	handler = middleware.PerformanceMonitor(appLogger)(handler)
 	handler = errorMiddleware(handler)
 	handler = requestLoggerMiddleware(handler)
 	handler = middleware.WithLogger(appLogger)(handler)
+	handler = languageMiddleware(handler)
 
 	return handler
 }

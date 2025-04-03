@@ -9,19 +9,32 @@ import (
 	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
 	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/auth"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/lib/i18n"
 	"github.com/vnlab/makeshop-payment/src/lib/utils"
 	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 type AuthHandler struct {
-	userUsecase *usecase.UserUsecase
-	jwtService  *auth.JWTService
+	userUsecase    *usecase.UserUsecase
+	jwtService     *auth.JWTService
+	turnstileService *auth.TurnstileService
+	auditLogUsecase *usecase.AuditLogUsecase
+	lockedAccountUsecase *usecase.LockedAccountUsecase
 }
 
-func NewAuthHandler(userUsecase *usecase.UserUsecase, jwtService *auth.JWTService) *AuthHandler {
+func NewAuthHandler(
+	userUsecase *usecase.UserUsecase,
+	jwtService *auth.JWTService,
+	turnstileService *auth.TurnstileService,
+	auditLogUsecase *usecase.AuditLogUsecase,
+	lockedAccountUsecase *usecase.LockedAccountUsecase,
+) *AuthHandler {
 	return &AuthHandler{
-		userUsecase: userUsecase,
-		jwtService:  jwtService,
+		userUsecase:     userUsecase,
+		jwtService:      jwtService,
+		turnstileService: turnstileService,
+		auditLogUsecase:  auditLogUsecase,
+		lockedAccountUsecase: lockedAccountUsecase,
 	}
 }
 
@@ -48,16 +61,66 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		response.ValidationError(w, err)
 		return
 	}
+	
+	var err = h.lockedAccountUsecase.CheckAccountStatus(r.Context(), req.Email)
+	if err != nil {
+		response.Unauthorized(w, i18n.T(r.Context(), err.Error()))
+		return
+	}
+
+	// Verify Turnstile token
+	valid, err := h.turnstileService.VerifyToken(req.TurnstileToken)
+
+	if err != nil {
+		response.BadRequest(w, i18n.T(r.Context(), "turnstile.verify_failed"), nil)
+		return
+	}
+
+	if !valid {
+		response.BadRequest(w, i18n.T(r.Context(), "turnstile.invalid_token"), nil)
+		return
+	}
 
 	loginReq := usecase.LoginRequest{
 		Email:    req.Email,
 		Password: req.Password,
+		TurnstileToken: req.TurnstileToken,
 	}
 
 	result, err := h.userUsecase.Login(r.Context(), loginReq)
 	if err != nil {
-		response.Unauthorized(w, "Invalid email or password")
+		_ = h.lockedAccountUsecase.HandleFailedLogin(r.Context(), req.Email)
+		var accountStatusErr = h.lockedAccountUsecase.CheckAccountStatus(r.Context(), req.Email)
+		if accountStatusErr != nil {
+			response.Unauthorized(w, i18n.T(r.Context(), accountStatusErr.Error()))
+			return
+		}
+
+		tempLockRemaining, permLockRemaining, countErr := h.lockedAccountUsecase.GetRemainingAttempts(r.Context(), req.Email)
+		if countErr == nil {
+			if tempLockRemaining >= 0 {
+				response.Unauthorized(w, i18n.T(r.Context(), "login.attempts_remaining_temp_lock", tempLockRemaining))
+				return
+			}
+	
+			if permLockRemaining >= 0 {
+				response.Unauthorized(w, i18n.T(r.Context(), "login.attempts_remaining_perm_lock", permLockRemaining))
+				return
+			}
+		}
+
+		response.Unauthorized(w, i18n.T(r.Context(), "login.failed"))
 		return
+	}
+
+	// Log successful login event
+	ipAddress := r.RemoteAddr
+	userAgent := r.UserAgent()
+	userID := result.User.ID
+	err = h.auditLogUsecase.LogLoginEvent(r.Context(), &userID, &ipAddress, &userAgent)
+	h.lockedAccountUsecase.UnlockAccountByEmail(r.Context(), req.Email)
+	if err != nil {
+		// TODO: log error
 	}
 
 	// We transform the login response directly here since it's a special case
@@ -66,7 +129,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		"token": result.Token,
 		"user":  serializers.NewUserSerializer(result.User).Serialize(),
 	}
-	response.Success(w, responseData, "Login successful")
+	response.Success(w, responseData, i18n.T(r.Context(), "login.success"))
 }
 
 // Register handles user registration
@@ -132,6 +195,48 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get user ID from context
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Unauthorized(w, "No user ID found")
+		return
+	}
+
+	// Log logout event
+	ipAddress := r.RemoteAddr
+	userAgent := r.UserAgent()
+	err := h.auditLogUsecase.LogLogoutEvent(r.Context(), &userID, &ipAddress, &userAgent)
+	if err != nil {
+		// TODO: log error
+	}
+
 	h.jwtService.BlacklistToken(token)
-	response.Success(w, nil, "Logged out successfully")
+	response.Success(w, nil, i18n.T(r.Context(), "logout.success"))
+}
+
+// Me handles getting current user information
+// @Summary Get current user information
+// @Description Get the current authenticated user's information
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response{data=models.User}
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Router /auth/me [get]
+func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Unauthorized(w, i18n.T(r.Context(), "account.unauthorized"))
+		return
+	}
+
+	// Get user information from usecase
+	user, err := h.userUsecase.GetUserByID(r.Context(), userID)
+	if err != nil {
+		response.NotFound(w, i18n.T(r.Context(), "ユーザーが見つかりません."))
+		return
+	}
+
+	response.Success(w, serializers.NewUserSerializer(user).Serialize(), i18n.T(r.Context(), "ユーザー情報を正常に取得しました"))
 }

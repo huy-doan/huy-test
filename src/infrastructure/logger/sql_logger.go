@@ -1,4 +1,3 @@
-// src/infrastructure/logger/sql_logger.go
 package logger
 
 import (
@@ -113,17 +112,17 @@ func (l *SQLLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 
 	// Calculate query execution time
 	elapsed := time.Since(begin)
-	
+
 	// Get SQL query and affected rows
 	sql, rows := fc()
-	
+
 	// Prepare log fields
 	fields := logrus.Fields{
-		"trace_id":    l.traceLogger.GetTraceID(),
-		"elapsed_ms":  elapsed.Milliseconds(),
-		"rows":        rows,
-		"sql":         sql,
-		"timestamp":   time.Now().UTC().Format(time.RFC3339),
+		"trace_id":   l.traceLogger.GetTraceID(),
+		"elapsed_ms": elapsed.Milliseconds(),
+		"rows":       rows,
+		"sql":        sql,
+		"timestamp":  time.Now().UTC().Format(time.RFC3339),
 	}
 
 	// If query resulted in an error

@@ -1,4 +1,3 @@
-// src/infrastructure/logger/error_logger.go
 package logger
 
 import (
@@ -22,7 +21,7 @@ func (l *loggerImpl) LogErrorWithContext(err error, msg string, contextData map[
 
 	// Extract error details
 	errorFields := extractErrorDetails(err)
-	
+
 	// Merge error fields with context data
 	for k, v := range errorFields {
 		contextData[k] = v
@@ -47,26 +46,26 @@ func extractErrorDetails(err error) map[string]interface{} {
 	if errors.As(err, &apiErr) {
 		errorFields["error_code"] = apiErr.Code
 		errorFields["error_type"] = apiErr.Type
-		
+
 		if apiErr.Details != nil {
 			errorFields["error_details"] = apiErr.Details
 		}
-		
+
 		if apiErr.Source != "" {
 			errorFields["error_source"] = apiErr.Source
 		}
-		
+
 		if apiErr.StackTrace != "" {
 			errorFields["stack_trace"] = apiErr.StackTrace
 		}
-		
+
 		if apiErr.Cause != nil {
 			errorFields["error_cause"] = apiErr.Cause.Error()
 		}
 	} else {
 		// For non-API errors, add stack trace for better debugging
 		errorFields["stack_trace"] = string(debug.Stack())
-		
+
 		// Also check for wrapped errors
 		var wrappedErr error
 		if errors.Unwrap(err) != nil {
@@ -86,12 +85,12 @@ func (l *loggerImpl) LogError(err error, contextData map[string]interface{}) {
 // ErrorWithContext creates and logs an error with context
 func (l *loggerImpl) ErrorWithContext(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	
+
 	// Create error information
 	errorFields := map[string]interface{}{
 		"stack_trace": string(debug.Stack()),
 	}
-	
+
 	// Log the error
 	l.Error(msg, errorFields)
 }
