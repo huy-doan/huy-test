@@ -1,5 +1,10 @@
 package models
 
+const (
+	MFAStatusInactive = 0
+	MFAStatusActive   = 1
+)
+
 // MFAType represents a multi-factor authentication type
 type MFAType struct {
 	ID int `json:"id"`
@@ -17,5 +22,5 @@ func (MFAType) TableName() string {
 
 // IsActiveType checks if this MFA type is active
 func (m *MFAType) IsActiveType() bool {
-	return m.IsActive == 1
+	return m.IsActive == MFAStatusActive
 }

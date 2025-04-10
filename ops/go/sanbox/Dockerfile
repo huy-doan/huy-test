@@ -45,10 +45,12 @@ WORKDIR /app
 COPY --from=builder /app/main /app/main
 # copy Batch
 COPY --from=builder /app/command /app/command
-# copy config
-COPY --from=builder /app/config /app/config
+# copy database
+COPY --from=builder /app/database /app/database
 # copy scripts
 COPY --from=builder /app/ops/scripts /app/scripts
+# copy scripts
+COPY --from=builder /app/src/lib/i18n/translations /app/src/lib/i18n/translations
 RUN chmod +x /app/scripts/*
 
 CMD ["/app/main"]

@@ -6,6 +6,9 @@ import (
 	models "github.com/vnlab/makeshop-payment/src/domain/models"
 	"github.com/vnlab/makeshop-payment/src/domain/repositories"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"golang.org/x/crypto/bcrypt"
+	userValidator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
+	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
 )
 
 // UserUsecase handles user-related business logic
@@ -191,4 +194,111 @@ func (uc *UserUsecase) ListUsers(ctx context.Context, page, pageSize int) ([]*mo
 // GetJWTService returns the JWT service
 func (uc *UserUsecase) GetJWTService() *auth.JWTService {
 	return uc.jwtService
+}
+
+// UpdateUser updates a user's profile by admin
+func (u *UserUsecase) UpdateUser(ctx context.Context, userID int, req validator.UpdateUserRequest) (*models.User, error) {
+	user, err := u.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	
+	if user == nil {
+		return nil, errors.New("account.not_found")
+	}
+
+	if req.Email != nil && *req.Email != user.Email {
+		existingUser, err := u.userRepo.FindByEmail(ctx, *req.Email)
+		if existingUser != nil && err == nil {
+			return nil, errors.New("email.already_exists")
+		}
+	}
+
+	if req.RoleID != nil {
+		role, err := u.roleRepo.FindByID(ctx, *req.RoleID)
+		if role == nil && err == nil {
+			return nil, errors.New("role.not_found")
+		}
+		user.Role = role
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Update fields only if admin provided
+	u.updateUserFields(user, req)
+	if err := u.userRepo.Update(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// updateUserFields updates the user fields based on the request
+func (u *UserUsecase) updateUserFields(user *models.User, req validator.UpdateUserRequest) {
+	if req.LastName != nil {
+		user.LastName = *req.LastName
+	}
+	if req.FirstName != nil {
+		user.FirstName = *req.FirstName
+	}
+	if req.LastNameKana != nil {
+		user.LastNameKana = *req.LastNameKana
+	}
+	if req.FirstNameKana != nil {
+		user.FirstNameKana = *req.FirstNameKana
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
+	if req.EnabledMFA != nil {
+		user.EnabledMFA = *req.EnabledMFA
+	}
+}
+
+// CreateUser creates a new user with the given data
+func (u *UserUsecase) CreateUser(ctx context.Context, req *userValidator.CreateUserRequest) (*models.User, error) {
+	existingUser, err := u.userRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, err
+	}
+	if existingUser != nil {
+		return nil, errors.New("email.already_exists")
+	}
+
+	role, err := u.roleRepo.FindByID(ctx, req.RoleID)
+	if err != nil {
+		return nil, err
+	}
+
+	if role == nil {
+		return nil, errors.New("role.not_found")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	newUser := &models.User{
+		Email:         req.Email,
+		PasswordHash:  string(hashedPassword),
+		RoleID:        req.RoleID,
+		EnabledMFA:    req.EnabledMFA,
+		FirstName:     req.FirstName,
+		LastName:      req.LastName,
+		FirstNameKana: req.FirstNameKana,
+		LastNameKana:  req.LastNameKana,
+	}
+
+	if err := u.userRepo.Create(ctx, newUser); err != nil {
+		return nil, err
+	}
+
+	return newUser, nil
+}
+
+func (u *UserUsecase) DeleteUser(ctx context.Context, userID int) error {
+	return u.userRepo.Delete(ctx, userID)
 }

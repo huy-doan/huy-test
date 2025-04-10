@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS `locked_accounts` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int DEFAULT NULL,
   `email` varchar(255) NOT NULL,
-  `is_locked` tinyint NOT NULL,
   `count` int NOT NULL,
   `locked_at` datetime DEFAULT NULL,
   `expired_at` datetime DEFAULT NULL,

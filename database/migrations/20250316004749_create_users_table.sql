@@ -19,7 +19,10 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE KEY `email` (`email`),
   KEY `deleted_at` (`deleted_at`),
   KEY `fk_users_role` (`role_id`),
-  KEY `fk_users_mfa_type` (`mfa_type_id`)
+  KEY `fk_users_mfa_type` (`mfa_type_id`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_updated_at` (`updated_at`),
+  KEY `idx_deleted_at` (`deleted_at`)
 );
 -- +goose StatementEnd
 

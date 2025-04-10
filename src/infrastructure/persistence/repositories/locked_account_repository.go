@@ -34,6 +34,7 @@ func (r *lockedAccountRepository) GetByEmail(ctx context.Context, email string) 
 	if err != nil {
 		return nil, err
 	}
+
 	return &account, nil
 }
 
