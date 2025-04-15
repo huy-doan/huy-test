@@ -25,6 +25,7 @@ func (s *UserSerializer) Serialize() interface{} {
 	result := map[string]interface{}{
 		"id":              s.User.ID,
 		"email":           s.User.Email,
+		"role_id":         s.User.RoleID,
 		"full_name":       s.User.FullName(),
 		"last_name":       s.User.LastName,
 		"first_name":      s.User.FirstName,
@@ -32,7 +33,6 @@ func (s *UserSerializer) Serialize() interface{} {
 		"first_name_kana": s.User.FirstNameKana,
 		"created_at":      s.User.CreatedAt.Format(time.RFC3339),
 		"updated_at":      s.User.UpdatedAt.Format(time.RFC3339),
-		"enabled_mfa":     s.User.EnabledMFA,
 	}
 
 	// Only include these fields if they exist
@@ -52,39 +52,8 @@ func (s *UserSerializer) Serialize() interface{} {
 		result["mfa_type"] = map[string]interface{}{
 			"id":        s.User.MFAType.ID,
 			"title":     s.User.MFAType.Title,
-			"is_active": s.User.MFAType.IsActive == models.MFAStatusActive,
+			"is_active": s.User.MFAType.IsActive,
 		}
-	}
-
-	type LockedType string
-	const (
-		LockedTypeTemporarily LockedType = "temporarily"
-		LockedTypePermanently  LockedType = "permanently"
-	)
-
-	if s.User.LockedAccount != nil {
-		lockedType := LockedType("active")
-		if s.User.LockedAccount.IsPermanentlyLocked() {
-			lockedType = LockedTypePermanently
-		}
-
-		if s.User.LockedAccount.IsTemporarilyLocked() {
-			lockedType = LockedTypeTemporarily
-		}
-
-		lockedAccountData := map[string]interface{}{
-			"lock_count":  s.User.LockedAccount.Count,
-			"lock_type":   lockedType,
-		}
-
-		if s.User.LockedAccount.LockedAt != nil {
-			lockedAccountData["locked_at"] = s.User.LockedAccount.LockedAt.Format(time.RFC3339)
-		}
-		if s.User.LockedAccount.ExpiredAt != nil {
-			lockedAccountData["expired_at"] = s.User.LockedAccount.ExpiredAt.Format(time.RFC3339)
-		}
-
-		result["locked_account"] = lockedAccountData
 	}
 
 	return result

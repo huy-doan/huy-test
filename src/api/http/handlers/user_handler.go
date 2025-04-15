@@ -9,13 +9,11 @@ import (
 	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
 	"github.com/vnlab/makeshop-payment/src/api/http/response"
 	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
+	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
 	"github.com/vnlab/makeshop-payment/src/domain/models"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 	"github.com/vnlab/makeshop-payment/src/lib/utils"
 	"github.com/vnlab/makeshop-payment/src/usecase"
-	"github.com/vnlab/makeshop-payment/src/lib/i18n"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	"fmt"
 )
 
 type UserHandler struct {
@@ -156,7 +154,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // GetUserByID handles getting a user by ID
 // @Summary Get a user by ID
 // @Description Get a user's details by their ID
-// @Tags admin users management
+// @Tags users
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -167,8 +165,9 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 403 {object} response.Response "Forbidden"
 // @Failure 404 {object} response.Response "Not Found"
 // @Failure 500 {object} response.Response "Internal Server Error"
-// @Router /admin/users/{id} [get]
+// @Router /users/{id} [get]
 func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
+	// Extract the ID from the URL path
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) < 4 {
 		response.BadRequest(w, "Invalid URL path", nil)
@@ -178,29 +177,28 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest(w, i18n.T(r.Context(), "account.not_found"), nil)
+		response.BadRequest(w, "Invalid user ID", nil)
 		return
 	}
 
 	user, err := h.userUsecase.GetUserByID(r.Context(), id)
 	if err != nil {
-		response.Error(w, errors.InternalError(i18n.T(r.Context(), "common.error")))
+		response.Error(w, errors.InternalError("Failed to get user"))
 		return
 	}
 
 	if user == nil {
-		response.BadRequest(w, i18n.T(r.Context(), "account.not_found"), nil)
+		response.NotFound(w, "User not found")
 		return
 	}
 
-	successMsg := fmt.Sprintf(i18n.T(r.Context(), "common.success"), "ユーザ")
-	response.Success(w, serializers.NewUserSerializer(user).Serialize(), i18n.T(r.Context(), successMsg))
+	response.Success(w, serializers.NewUserSerializer(user).Serialize(), "User retrieved successfully")
 }
 
 // ListUsers handles listing users with pagination
 // @Summary List users
 // @Description Get a list of users with pagination
-// @Tags admin users management
+// @Tags users
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -210,7 +208,7 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} response.Response "Unauthorized"
 // @Failure 403 {object} response.Response "Forbidden"
 // @Failure 500 {object} response.Response "Internal Server Error"
-// @Router /admin/users [get]
+// @Router /users [get]
 func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameters
 	pageStr := r.URL.Query().Get("page")
@@ -251,165 +249,4 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success(w, responseData, "Users retrieved successfully")
-}
-
-// UpdateUserProfile handles admin user profile updates
-// @Summary Update user profile by admin
-// @Description Update a user's profile information (admin only)
-// @Tags admin users management
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "User ID"
-// @Param request body validator.UpdateUserRequest true "User update details"
-// @Success 200 {object} response.Response{data=models.User}
-// @Failure 400 {object} response.Response "Bad Request"
-// @Failure 401 {object} response.Response "Unauthorized"
-// @Failure 403 {object} response.Response "Forbidden"
-// @Failure 404 {object} response.Response "Not Found"
-// @Failure 500 {object} response.Response "Internal Server Error"
-// @Router /admin/users/{id} [put]
-func (h *UserHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
-	userID, err := utils.ExtractParamFromPath(r, "id")
-	if err != nil {
-		response.BadRequest(w, err.Error(), nil)
-		return
-	}
-
-	var req validator.UpdateUserRequest
-	if err := utils.ParseJSONBody(r, &req); err != nil {
-		response.ValidationError(w, err)
-		return
-	}
-
-	if err := req.Validate(); err != nil {
-		response.ValidationError(w, err)
-		return
-	}
-
-	updateReq := validator.UpdateUserRequest{
-		LastName:      req.LastName,
-		FirstName:     req.FirstName,
-		LastNameKana:  req.LastNameKana,
-		FirstNameKana: req.FirstNameKana,
-		RoleID:        req.RoleID,
-		Email:         req.Email,
-		EnabledMFA:    req.EnabledMFA,
-	}
-
-	user, err := h.userUsecase.UpdateUser(r.Context(), userID, updateReq)
-	if err != nil {
-		h.handleError(w, r, err)
-		return
-	}
-
-
-	successMsg := fmt.Sprintf(i18n.T(r.Context(), "common.success"), "ユーザ")
-	response.Success(w, serializers.NewUserSerializer(user).Serialize(), successMsg)
-}
-
-// CreateUser handles the creation of a new user
-// @Summary Create a new user
-// @Description Create a new user with the provided information
-// @Tags admin users management
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param user body validator.CreateUserRequest true "User information"
-// @Success 201 {object} response.Response{data=models.User}
-// @Failure 400 {object} response.Response "Bad Request"
-// @Failure 401 {object} response.Response "Unauthorized"
-// @Failure 403 {object} response.Response "Forbidden"
-// @Failure 409 {object} response.Response "Conflict"
-// @Failure 500 {object} response.Response "Internal Server Error"
-// @Router /admin/users [post]
-func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var req validator.CreateUserRequest
-	if err := utils.ParseJSONBody(r, &req); err != nil {
-		response.ValidationError(w, err)
-		return
-	}
-
-	if err := req.Validate(); err != nil {
-		response.ValidationError(w, err)
-		return
-	}
-
-	newUser, err := h.userUsecase.CreateUser(r.Context(), &req)
-	if err != nil {
-		h.handleError(w, r, err)
-		return
-	}
-
-	successMsg := fmt.Sprintf(i18n.T(r.Context(), "common.success"), "ユーザ")
-	response.Created(w, serializers.NewUserSerializer(newUser).Serialize(), successMsg)
-} 
-
-// DeleteUser handles the deletion of a user
-// @Summary Delete a user
-// @Description Delete a user by ID
-// @Tags admin users management
-// @Accept json	
-// @Produce json
-// @Security BearerAuth
-// @Param id path int true "User ID"
-// @Success 200 {object} response.Response "Success"
-// @Failure 401 {object} response.Response "Unauthorized"
-// @Failure 403 {object} response.Response "Forbidden"
-// @Failure 404 {object} response.Response "Not Found"
-// @Failure 500 {object} response.Response "Internal Server Error"
-// @Router /admin/users/{id} [delete]
-func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	userID, err := utils.ExtractParamFromPath(r, "id")
-	if err != nil {
-		response.NotFound(w, i18n.T(r.Context(), "account.not_found"))
-		return
-	}
-
-	currentUserID := r.Context().Value(middleware.UserIDKey).(int)
-	if currentUserID == userID {
-		response.BadRequest(w, i18n.T(r.Context(), "cannot_delete_self"), nil)
-		return
-	}
-
-	user, err := h.userUsecase.GetUserByID(r.Context(), userID)
-	if err != nil {
-		response.Error(w, errors.InternalError(i18n.T(r.Context(), "common.error")))
-		return
-	}
-
-	if user == nil {
-		response.NotFound(w, i18n.T(r.Context(), "account.not_found"))
-		return
-	}
-
-	err = h.userUsecase.DeleteUser(r.Context(), userID)
-	if err != nil {
-		h.handleError(w, r, err)
-		return
-	}
-
-	successMsg := fmt.Sprintf(i18n.T(r.Context(), "common.success"), "ユーザ")
-
-	response.Success(w, nil, successMsg)
-}
-
-// handleError centralizes error handling for user-related operations
-func (h *UserHandler) handleError(w http.ResponseWriter, r *http.Request, err error) {
-    if err == nil {
-        return
-    }
-
-    switch err.Error() {
-    case "account.not_found":
-        response.NotFound(w, i18n.T(r.Context(), "account.not_found"))
-    case "email.already_exists":
-        response.BadRequest(w, i18n.T(r.Context(), "email.already_exists"), nil)
-    case "role.not_found":
-        response.NotFound(w, i18n.T(r.Context(), "role.not_found"))
-    case "cannot_delete_self":
-        response.BadRequest(w, i18n.T(r.Context(), "cannot_delete_self"), nil)
-    default:
-        response.Error(w, errors.InternalError(i18n.T(r.Context(), "common.error")))
-    }
 }

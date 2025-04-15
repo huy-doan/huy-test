@@ -60,7 +60,6 @@ func NewServer(
 		auditLogUsecase,
 		lockedAccountUseCase,
 		appLogger,
-		lockedAccountRepo,
 	)
 
 	// Create HTTP server

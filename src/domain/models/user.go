@@ -24,7 +24,6 @@ type User struct {
 	LastNameKana  string   `json:"last_name_kana"`
 	FirstNameKana string   `json:"first_name_kana"`
 	AvatarURL     *string  `json:"avatar_url,omitempty"`
-	LockedAccount *LockedAccount `json:"locked_account,omitempty"`
 }
 
 // TableName specifies the database table name
@@ -94,7 +93,7 @@ func (u *User) ChangePassword(newPassword string) error {
 	}
 
 	u.PasswordHash = string(hashedPassword)
-
+	u.UpdatedAt = time.Now()
 	return nil
 }
 

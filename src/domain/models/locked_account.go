@@ -7,6 +7,7 @@ type LockedAccount struct {
 	ID        int        `json:"id"`
 	Email     string     `json:"email"`
 	UserID    *int       `json:"user_id"`
+	IsLocked  bool       `json:"is_locked"`
 	Count     int        `json:"count"`
 	LockedAt  *time.Time `json:"locked_at,omitempty"`
 	ExpiredAt *time.Time `json:"expired_at,omitempty"`
@@ -30,11 +31,7 @@ func (la *LockedAccount) TableName() string {
 
 // IsTemporarilyLocked checks if the account is temporarily locked
 func (la *LockedAccount) IsTemporarilyLocked() bool {
-	if la.LockedAt != nil && la.ExpiredAt == nil {
-		return false
-	}
-
-	if la.LockedAt == nil && la.ExpiredAt == nil {
+	if !la.IsLocked || la.ExpiredAt == nil {
 		return false
 	}
 
@@ -43,7 +40,7 @@ func (la *LockedAccount) IsTemporarilyLocked() bool {
 
 // IsPermanentlyLocked checks if the account is permanently locked
 func (la *LockedAccount) IsPermanentlyLocked() bool {
-	return la.LockedAt != nil && la.ExpiredAt == nil
+	return la.IsLocked && la.ExpiredAt == nil
 }
 
 // ShouldTemporarilyLock checks if the account should be temporarily locked

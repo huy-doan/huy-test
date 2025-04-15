@@ -23,7 +23,6 @@ func SetupRouter(
 	auditLogUsecase *usecase.AuditLogUsecase,
 	lockedAccountUsecase *usecase.LockedAccountUsecase,
 	appLogger logger.Logger,
-	lockedAccountRepo repositories.LockedAccountRepository,
 ) http.Handler {
 	// Create main router
 	mux := http.NewServeMux()
@@ -34,7 +33,6 @@ func SetupRouter(
 	// Create handlers
 	authHandler := handlers.NewAuthHandler(userUsecase, jwtService, turnstileService, auditLogUsecase, lockedAccountUsecase)
 	userHandler := handlers.NewUserHandler(userUsecase, jwtService)
-	lockedAccountHandler := handlers.NewLockedAccountHandler(lockedAccountUsecase)
 
 	// Set up middleware
 	errorMiddleware := middleware.ErrorHandler
@@ -51,27 +49,21 @@ func SetupRouter(
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	// API v1 routes - Authentication
+	// API v1 routes - Auth
 	mux.HandleFunc("POST /api/v1/auth/login", authHandler.Login)
 	mux.HandleFunc("POST /api/v1/auth/register", authHandler.Register)
 	mux.HandleFunc("POST /api/v1/auth/logout", authMiddleware(authHandler.Logout))
 	mux.HandleFunc("GET /api/v1/auth/me", authMiddleware(authHandler.Me))
 
-	// API v1 routes - User Self-Management
+	// API v1 routes - User
 	mux.HandleFunc("GET /api/v1/users/profile", authMiddleware(userHandler.GetProfile))
 	mux.HandleFunc("PUT /api/v1/users/profile", authMiddleware(userHandler.UpdateProfile))
 	mux.HandleFunc("POST /api/v1/users/change-password", authMiddleware(userHandler.ChangePassword))
 
-	// Admin-only routes - User Management
-	mux.HandleFunc("GET /api/v1/admin/users", authMiddleware(adminMiddleware(userHandler.ListUsers)))
-	mux.HandleFunc("GET /api/v1/admin/users/{id}", authMiddleware(adminMiddleware(userHandler.GetUserByID)))
-	mux.HandleFunc("PUT /api/v1/admin/users/{id}", authMiddleware(adminMiddleware(userHandler.UpdateUserProfile)))
-	mux.HandleFunc("POST /api/v1/admin/users", authMiddleware(adminMiddleware(userHandler.CreateUser)))
-	mux.HandleFunc("DELETE /api/v1/admin/users/{id}", authMiddleware(adminMiddleware(userHandler.DeleteUser)))
+	// Admin-only routes
+	mux.HandleFunc("GET /api/v1/users", authMiddleware(adminMiddleware(userHandler.ListUsers)))
+	mux.HandleFunc("GET /api/v1/users/{id}", authMiddleware(adminMiddleware(userHandler.GetUserByID)))
 
-	// Admin-only routes - Locked Account
-	mux.HandleFunc("POST /api/v1/admin/locked-account", authMiddleware(adminMiddleware(lockedAccountHandler.UpdateOrCreateLockedAccount)))
-	
 	// Swagger documentation (in development mode only)
 	if os.Getenv("API_ENV") != "production" {
 		mux.HandleFunc("GET /swagger/", func(w http.ResponseWriter, r *http.Request) {

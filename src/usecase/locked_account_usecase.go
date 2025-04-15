@@ -6,7 +6,6 @@ import (
 	"github.com/vnlab/makeshop-payment/src/domain/models"
 	"github.com/vnlab/makeshop-payment/src/domain/repositories"
 	"time"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
 )
 
 var (
@@ -37,6 +36,7 @@ func (u *LockedAccountUsecase) GetOrCreateLockedAccount(ctx context.Context, ema
 	if err != nil {
 		lockedAccount = &models.LockedAccount{
 			Email:    email,
+			IsLocked: false,
 			Count:    0,
 		}
 	}
@@ -52,6 +52,7 @@ func (u *LockedAccountUsecase) GetOrCreateLockedAccount(ctx context.Context, ema
 // handlePermanentLock handles permanent account locking
 func (u *LockedAccountUsecase) handlePermanentLock(ctx context.Context, lockedAccount *models.LockedAccount) error {
 	now := time.Now()
+	lockedAccount.IsLocked = true
 	lockedAccount.LockedAt = &now
 	lockedAccount.ExpiredAt = nil
 
@@ -70,6 +71,7 @@ func (u *LockedAccountUsecase) handleTemporaryLock(ctx context.Context, lockedAc
 		expiredAt := now.Add(time.Duration(models.TempLockDuration) * time.Minute)
 		lockedAccount.LockedAt = &now
 		lockedAccount.ExpiredAt = &expiredAt
+		lockedAccount.IsLocked = true
 	}
 
 	err := u.lockedAccountRepo.Update(ctx, lockedAccount)
@@ -95,6 +97,7 @@ func (u *LockedAccountUsecase) HandleFailedLogin(ctx context.Context, email stri
 	if err != nil && user == nil {
 		return u.handlePermanentLock(ctx, &models.LockedAccount{
 			Email:    email,
+			IsLocked: true,
 		})
 	}
 
@@ -116,7 +119,7 @@ func (u *LockedAccountUsecase) HandleFailedLogin(ctx context.Context, email stri
 // CheckAccountStatus checks if an account is locked
 func (u *LockedAccountUsecase) CheckAccountStatus(ctx context.Context, email string) error {
 	lockedAccount, err := u.lockedAccountRepo.GetByEmail(ctx, email)
-	if err == nil && lockedAccount != nil {
+	if err == nil && lockedAccount.IsLocked {
 		if lockedAccount.IsPermanentlyLocked() {
 			return ErrAccountPermLocked
 		}
@@ -156,6 +159,7 @@ func (u *LockedAccountUsecase) UnlockAccountByEmail(ctx context.Context, email s
 
 // ResetLockAccount resets all lock-related fields of a LockedAccount to their default values
 func (u *LockedAccountUsecase) ResetLockAccount(ctx context.Context, lockedAccount *models.LockedAccount) error {
+	lockedAccount.IsLocked = false
 	lockedAccount.Count = 0
 	lockedAccount.ExpiredAt = nil
 	lockedAccount.LockedAt = nil
@@ -178,45 +182,4 @@ func (u *LockedAccountUsecase) GetRemainingAttempts(ctx context.Context, email s
 	permLockRemaining = models.PermLockThreshold - lockedAccount.Count
 
 	return tempLockRemaining, permLockRemaining, nil
-}
-
-// UpdateOrCreateLockedAccount updates or creates a locked account record for a user
-func (u *LockedAccountUsecase) UpdateOrCreateLockedAccount(ctx context.Context, req validator.UpdateLockedAccountRequest) (*models.LockedAccount, error) {
-	email := req.Email
-	user, err := u.userRepo.FindByEmail(ctx, email)
-	if err != nil && user == nil {
-		return nil, err
-	}
-
-	var userID *int
-	if user != nil {
-		userID = &user.ID
-	}
-
-	lockedAccount, err := u.lockedAccountRepo.GetByEmail(ctx, email)
-	// if locked account not found, create a new one
-	if err != nil {
-		lockedAccount = &models.LockedAccount{
-			UserID: userID,
-			Email:  email,
-		}
-	}
-
-	lockedAccount.LockedAt = req.LockedAt
-	lockedAccount.ExpiredAt = req.ExpiredAt
-	lockedAccount.Count = req.Count
-
-	if lockedAccount.ID > 0 {
-		err := u.lockedAccountRepo.Update(ctx, lockedAccount)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		err := u.lockedAccountRepo.Create(ctx, lockedAccount)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return lockedAccount, nil
 }

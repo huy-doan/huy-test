@@ -37,6 +37,15 @@ type Config struct {
 	// Authentication configuration
 	JWTSecret       string
 	JWTDurationHour int
+
+	// Email configuration
+	SMTPHost         string
+	SMTPPort         int
+	SMTPUsername     string
+	SMTPPassword     string
+	SMTPFromEmail    string
+	SMTPFromName     string
+	EmailTemplateDir string
 }
 
 var (
@@ -65,23 +74,31 @@ func LoadConfig() *Config {
 			EnableSQLLog:     false,
 			SqlLogLevel:      sqlLogLevel,
 			JWTDurationHour:  24, // Hours
+			EmailTemplateDir: "src/infrastructure/email/templates",
+			SMTPFromName:     "Makeshop Payment",
 		}
 
 		// Map of environment variables to configuration fields
 		envVars := map[string]*string{
-			"API_ENV":       &configInstance.ApiEnv,
-			"SERVER_HOST":   &configInstance.ServerHost,
-			"SERVER_PORT":   &configInstance.ServerPort,
-			"FRONT_URL":     &configInstance.FrontUrl,
-			"DB_HOST":       &configInstance.DBHost,
-			"DB_PORT":       &configInstance.DBPort,
-			"DB_USER":       &configInstance.DBUser,
-			"DB_PASSWORD":   &configInstance.DBPassword,
-			"DB_NAME":       &configInstance.DBName,
-			"LOG_LEVEL":     &configInstance.LogLevel,
-			"SQL_LOG_LEVEL": &configInstance.SqlLogLevel,
-			"LOG_DIRECTORY": &configInstance.LogDirectory,
-			"JWT_SECRET":    &configInstance.JWTSecret,
+			"API_ENV":            &configInstance.ApiEnv,
+			"SERVER_HOST":        &configInstance.ServerHost,
+			"SERVER_PORT":        &configInstance.ServerPort,
+			"FRONT_URL":          &configInstance.FrontUrl,
+			"DB_HOST":            &configInstance.DBHost,
+			"DB_PORT":            &configInstance.DBPort,
+			"DB_USER":            &configInstance.DBUser,
+			"DB_PASSWORD":        &configInstance.DBPassword,
+			"DB_NAME":            &configInstance.DBName,
+			"LOG_LEVEL":          &configInstance.LogLevel,
+			"SQL_LOG_LEVEL":      &configInstance.SqlLogLevel,
+			"LOG_DIRECTORY":      &configInstance.LogDirectory,
+			"JWT_SECRET":         &configInstance.JWTSecret,
+			"SMTP_HOST":          &configInstance.SMTPHost,
+			"SMTP_USERNAME":      &configInstance.SMTPUsername,
+			"SMTP_PASSWORD":      &configInstance.SMTPPassword,
+			"SMTP_FROM_EMAIL":    &configInstance.SMTPFromEmail,
+			"SMTP_FROM_NAME":     &configInstance.SMTPFromName,
+			"EMAIL_TEMPLATE_DIR": &configInstance.EmailTemplateDir,
 		}
 
 		// Override string fields with environment variables if they exist
@@ -106,10 +123,18 @@ func LoadConfig() *Config {
 			}
 		}
 
-		// Override integer fields
-		if val := os.Getenv("JWT_EXPIRATION_HOURS"); val != "" {
-			if duration, err := strconv.Atoi(val); err == nil {
-				configInstance.JWTDurationHour = duration
+		// Override boolean fields
+		intVars := map[string]*int{
+			"JWT_EXPIRATION_HOURS": &configInstance.JWTDurationHour,
+			"SMTP_PORT":            &configInstance.SMTPPort,
+		}
+
+		for env, field := range intVars {
+			if val := os.Getenv(env); val != "" {
+				intVal, err := strconv.Atoi(val)
+				if err == nil {
+					*field = intVal
+				}
 			}
 		}
 	})

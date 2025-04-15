@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"fmt"
-	"github.com/vnlab/makeshop-payment/src/lib/i18n"
 )
 
 // ParseJSONBody decodes a JSON request body into the provided struct
@@ -32,25 +30,25 @@ func ParseJSONBody(r *http.Request, dst interface{}) error {
 	return json.Unmarshal(body, dst)
 }
 
-// ExtractParamFromPath extracts a parameter from the URL path
-func ExtractParamFromPath(r *http.Request, paramName string) (int, error) {
-    rawValue := r.PathValue(paramName)
-    if rawValue == "" {
-        return 0, fmt.Errorf(i18n.T(r.Context(), "params.not_found", paramName))
-    }
+// ExtractIDFromPath extracts an ID from the URL path
+// Example: for path "/api/v1/users/123", ExtractIDFromPath(r, "/api/v1/users/") would return 123
+func ExtractIDFromPath(r *http.Request, prefix string) (int, error) {
+	path := r.URL.Path
+	if len(path) <= len(prefix) {
+		return 0, errors.New("invalid path")
+	}
 
-    value, err := strconv.Atoi(rawValue)
-    if err != nil {
-        return 0, fmt.Errorf(i18n.T(r.Context(), "params.invalid_number", paramName))
-    }
+	// Remove the prefix from the path
+	idStr := path[len(prefix):]
 
-    if value <= 0 {
-        return 0, fmt.Errorf(i18n.T(r.Context(), "params.must_be_positive", paramName))
-    }
+	// Convert to integer
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return 0, errors.New("invalid ID format")
+	}
 
-    return value, nil
+	return id, nil
 }
-
 
 // GetQueryParam retrieves a query parameter with default value
 func GetQueryParam(r *http.Request, name string, defaultValue string) string {
