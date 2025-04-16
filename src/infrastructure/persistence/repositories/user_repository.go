@@ -25,7 +25,9 @@ func NewUserRepository(db *gorm.DB) repositories.UserRepository {
 // FindByID finds a user by ID
 func (r *UserRepositoryImpl) FindByID(ctx context.Context, id int) (*models.User, error) {
 	var user models.User
-	result := r.db.Preload("Role").First(&user, id)
+	result := r.db.Preload("Role").
+		First(&user, id)
+
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil if user not found
@@ -38,7 +40,10 @@ func (r *UserRepositoryImpl) FindByID(ctx context.Context, id int) (*models.User
 // FindByEmail finds a user by email
 func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-	result := r.db.Preload("Role").Where("email = ?", email).First(&user)
+	result := r.db.Preload("Role").
+		Where("email = ?", email).
+		First(&user)
+
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil if user not found
@@ -75,10 +80,14 @@ func (r *UserRepositoryImpl) List(ctx context.Context, page, pageSize int) ([]*m
 
 	// Apply pagination
 	offset := (page - 1) * pageSize
-	if err := r.db.Preload("Role").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
+	if err := r.db.Preload("Role").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&users).Error; err != nil {
 		return nil, 0, err
 	}
 
 	totalPages := int(math.Ceil(float64(count) / float64(pageSize)))
+
 	return users, totalPages, nil
 }

@@ -41,18 +41,6 @@
       "en": "Logged out successfully"
     }
   },
-  "turnstile.verify_failed": {
-    "id": "turnstile.verify_failed",
-    "translation": {
-      "en": "Failed to verify Turnstile token"
-    }
-  },
-  "turnstile.invalid_token": {
-    "id": "turnstile.invalid_token",
-    "translation": {
-      "en": "Invalid Turnstile token"
-    }
-  },
   "login.attempts_remaining_temp_lock": {
     "id": "login.attempts_remaining_temp_lock",
     "translation": {

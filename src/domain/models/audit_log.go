@@ -4,7 +4,7 @@ package models
 type AuditLog struct {
 	ID            int     `json:"id"`
 	UserID        *int    `json:"user_id"`
-	AuditTypeID   int   `json:"audit_type_id"`
+	AuditTypeID   int     `json:"audit_type_id"`
 	Description   *string `json:"description"`
 	TransactionID *int    `json:"transaction_id"`
 	OutcomingID   *int    `json:"outcoming_id"`
@@ -13,7 +13,7 @@ type AuditLog struct {
 	BaseColumnTimestamp
 
 	// Relationships
-	User               *User               `json:"user"`
+	User *User `json:"user"`
 }
 
 // TableName specifies the table name for AuditLog

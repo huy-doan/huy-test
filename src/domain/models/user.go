@@ -12,18 +12,17 @@ type User struct {
 	ID int `json:"id"`
 	BaseColumnTimestamp
 
-	Email         string   `json:"email"`
-	PasswordHash  string   `json:"-"` // Never exposed in JSON
-	RoleID        int      `json:"role_id"`
-	Role          *Role    `json:"role"`
-	EnabledMFA    bool     `json:"enabled_mfa"`
-	MFATypeID     *int     `json:"mfa_type_id"`
-	MFAType       *MFAType `json:"mfa_type"`
-	LastName      string   `json:"last_name"`
-	FirstName     string   `json:"first_name"`
-	LastNameKana  string   `json:"last_name_kana"`
-	FirstNameKana string   `json:"first_name_kana"`
-	AvatarURL     *string  `json:"avatar_url,omitempty"`
+	Email         string  `json:"email"`
+	PasswordHash  string  `json:"-"` // Never exposed in JSON
+	RoleID        int     `json:"role_id"`
+	Role          *Role   `json:"role"`
+	EnabledMFA    bool    `json:"enabled_mfa"`
+	MFAType       int     `json:"mfa_type"`
+	LastName      string  `json:"last_name"`
+	FirstName     string  `json:"first_name"`
+	LastNameKana  string  `json:"last_name_kana"`
+	FirstNameKana string  `json:"first_name_kana"`
+	AvatarURL     *string `json:"avatar_url,omitempty"`
 }
 
 // TableName specifies the database table name
@@ -93,7 +92,7 @@ func (u *User) ChangePassword(newPassword string) error {
 	}
 
 	u.PasswordHash = string(hashedPassword)
-	u.UpdatedAt = time.Now()
+
 	return nil
 }
 
@@ -116,9 +115,9 @@ func (u *User) UpdateProfile(firstName, lastName, firstNameKana, lastNameKana st
 }
 
 // SetMFA configures the MFA settings for a user
-func (u *User) SetMFA(enabled bool, mfaTypeID *int) {
+func (u *User) SetMFA(enabled bool, mfaType int) {
 	u.EnabledMFA = enabled
-	u.MFATypeID = mfaTypeID
+	u.MFAType = mfaType
 	u.UpdatedAt = time.Now()
 }
 

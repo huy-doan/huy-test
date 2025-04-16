@@ -25,7 +25,6 @@ func (s *UserSerializer) Serialize() interface{} {
 	result := map[string]interface{}{
 		"id":              s.User.ID,
 		"email":           s.User.Email,
-		"role_id":         s.User.RoleID,
 		"full_name":       s.User.FullName(),
 		"last_name":       s.User.LastName,
 		"first_name":      s.User.FirstName,
@@ -33,6 +32,7 @@ func (s *UserSerializer) Serialize() interface{} {
 		"first_name_kana": s.User.FirstNameKana,
 		"created_at":      s.User.CreatedAt.Format(time.RFC3339),
 		"updated_at":      s.User.UpdatedAt.Format(time.RFC3339),
+		"enabled_mfa":     s.User.EnabledMFA,
 	}
 
 	// Only include these fields if they exist
@@ -48,11 +48,11 @@ func (s *UserSerializer) Serialize() interface{} {
 		}
 	}
 
-	if s.User.MFAType != nil {
+	if s.User.MFAType != 0 {
 		result["mfa_type"] = map[string]interface{}{
-			"id":        s.User.MFAType.ID,
-			"title":     s.User.MFAType.Title,
-			"is_active": s.User.MFAType.IsActive,
+			"id":        s.User.MFAType,
+			"title":     models.GetMFATypeTitle(s.User.MFAType),
+			"is_active": s.User.EnabledMFA,
 		}
 	}
 

@@ -38,6 +38,9 @@ type Config struct {
 	JWTSecret       string
 	JWTDurationHour int
 
+	// Two Factor Authentication configuration
+	MFATokenExpiryMinutes int
+
 	// Email configuration
 	SMTPHost         string
 	SMTPPort         int
@@ -45,6 +48,8 @@ type Config struct {
 	SMTPPassword     string
 	SMTPFromEmail    string
 	SMTPFromName     string
+	SMTPUseAuth      bool
+	SMTPUseTLS       bool
 	EmailTemplateDir string
 }
 
@@ -66,16 +71,19 @@ func LoadConfig() *Config {
 
 		// Set default values
 		configInstance = &Config{
-			ServerHost:       "0.0.0.0",
-			ServerPort:       "8080",
-			LogLevel:         "warn",
-			LogDirectory:     "/app/logs",
-			EnableConsoleLog: true,
-			EnableSQLLog:     false,
-			SqlLogLevel:      sqlLogLevel,
-			JWTDurationHour:  24, // Hours
-			EmailTemplateDir: "src/infrastructure/email/templates",
-			SMTPFromName:     "Makeshop Payment",
+			ServerHost:            "0.0.0.0",
+			ServerPort:            "8080",
+			LogLevel:              "warn",
+			LogDirectory:          "/app/logs",
+			EnableConsoleLog:      true,
+			EnableSQLLog:          false,
+			SqlLogLevel:           sqlLogLevel,
+			JWTDurationHour:       24, // Hours
+			MFATokenExpiryMinutes: 30, // Minutes
+			EmailTemplateDir:      "src/infrastructure/email/templates",
+			SMTPFromName:          "Makeshop Payment",
+			SMTPUseAuth:           true,
+			SMTPUseTLS:            true,
 		}
 
 		// Map of environment variables to configuration fields
@@ -112,6 +120,8 @@ func LoadConfig() *Config {
 		boolVars := map[string]*bool{
 			"ENABLE_CONSOLE_LOG": &configInstance.EnableConsoleLog,
 			"ENABLE_SQL_LOG":     &configInstance.EnableSQLLog,
+			"SMTP_USE_AUTH":      &configInstance.SMTPUseAuth,
+			"SMTP_USE_TLS":       &configInstance.SMTPUseTLS,
 		}
 
 		for env, field := range boolVars {

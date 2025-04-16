@@ -1,16 +1,16 @@
 package models
 
-// MasterAuditLogType represents the type of audit log
-type MasterAuditLogType struct {
+// AuditLogType represents the type of audit log
+type AuditLogType struct {
 	ID   int    `json:"id"`
 	Code string `json:"code"`
 	Name string `json:"name"`
 	BaseColumnTimestamp
 }
 
-// TableName specifies the table name for MasterAuditLogType
-func (MasterAuditLogType) TableName() string {
-	return "master_audit_log_types"
+// TableName specifies the table name for AuditLogType
+func (AuditLogType) TableName() string {
+	return "audit_log_type"
 }
 
 // Audit log type constants
@@ -37,4 +37,3 @@ const (
 	AuditTypeAccountUnlocked            int = 20
 	AuditTypeAPIAccess                  int = 21
 )
-

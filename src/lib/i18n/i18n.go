@@ -2,8 +2,8 @@ package i18n
 
 import (
 	"context"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -42,7 +42,7 @@ func Init() error {
 	for _, file := range files {
 		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" {
 			lang := file.Name()[:len(file.Name())-5]
-			
+
 			translations := make(map[string]Translation)
 			data, err := os.ReadFile(filepath.Join(dir, file.Name()))
 			if err != nil {
@@ -104,7 +104,7 @@ func T(ctx context.Context, key string, args ...interface{}) string {
 
 	lang := instance.getLanguageFromContext(ctx)
 	text, found := instance.getTranslation(key, lang)
-	
+
 	if !found {
 		return key
 	}

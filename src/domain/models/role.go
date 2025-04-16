@@ -7,11 +7,13 @@ type Role struct {
 
 	Name string `json:"name"`
 	Code string `json:"code"`
+
+	Permissions []*Permission `json:"permissions" gorm:"many2many:role_permission;foreignKey:ID;joinForeignKey:RoleID;References:ID;joinReferences:PermissionID"`
 }
 
 // TableName specifies the database table name
 func (Role) TableName() string {
-	return "roles"
+	return "role"
 }
 
 // RoleCode defines constants for standard role codes

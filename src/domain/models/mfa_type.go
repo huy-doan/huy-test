@@ -1,21 +1,14 @@
 package models
 
-// MFAType represents a multi-factor authentication type
-type MFAType struct {
-	ID int `json:"id"`
-	BaseColumnTimestamp
+const (
+	MFATypeEmail int = 1 // Email-based MFA - メール
+)
 
-	No       int    `json:"no"`
-	Title    string `json:"title"`
-	IsActive int    `json:"is_active"`
-}
-
-// TableName specifies the database table name
-func (MFAType) TableName() string {
-	return "master_mfa_types"
-}
-
-// IsActiveType checks if this MFA type is active
-func (m *MFAType) IsActiveType() bool {
-	return m.IsActive == 1
+func GetMFATypeTitle(mfaType int) string {
+	switch mfaType {
+	case MFATypeEmail:
+		return "Email"
+	default:
+		return "Email"
+	}
 }

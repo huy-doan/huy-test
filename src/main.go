@@ -8,9 +8,9 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/vnlab/makeshop-payment/docs"
 	"github.com/vnlab/makeshop-payment/src/api"
+	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
 )
@@ -77,17 +77,17 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	roleRepo := repositories.NewRoleRepository(db)
 	auditLogRepo := repositories.NewAuditLogRepository(db)
-	lockedAccountRepo := repositories.NewLockedAccountRepository(db)
-	masterAuditLogTypeRepo := repositories.NewMasterAuditLogTypeRepository(db)
+	auditLogTypeRepo := repositories.NewAuditLogTypeRepository(db)
+	twoFactorTokenRepo := repositories.NewTwoFactorTokenRepository(db)
 
 	// Create and start API server
 	server := api.NewServer(
 		userRepo,
 		roleRepo,
 		auditLogRepo,
-		lockedAccountRepo,
-		masterAuditLogTypeRepo,
+		auditLogTypeRepo,
 		appLogger,
+		twoFactorTokenRepo,
 	)
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

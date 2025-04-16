@@ -8,24 +8,24 @@ import (
 
 // AuditLogUsecase handles audit logging business logic
 type AuditLogUsecase struct {
-	auditLogRepo repositories.AuditLogRepository
-	masterAuditLogTypeRepo repositories.MasterAuditLogTypeRepository
+	auditLogRepo     repositories.AuditLogRepository
+	auditLogTypeRepo repositories.AuditLogTypeRepository
 }
 
 // NewAuditLogUsecase creates a new AuditLogUsecase
 func NewAuditLogUsecase(
 	auditLogRepo repositories.AuditLogRepository,
-	masterAuditLogTypeRepo repositories.MasterAuditLogTypeRepository,
+	auditLogTypeRepo repositories.AuditLogTypeRepository,
 ) *AuditLogUsecase {
 	return &AuditLogUsecase{
-		auditLogRepo:             auditLogRepo,
-		masterAuditLogTypeRepo: masterAuditLogTypeRepo,
+		auditLogRepo:     auditLogRepo,
+		auditLogTypeRepo: auditLogTypeRepo,
 	}
 }
 
 func (uc *AuditLogUsecase) logEventByType(ctx context.Context, userID *int, ipAddress *string, userAgent *string, auditTypeID int) error {
-	masterAuditLogType, err := uc.masterAuditLogTypeRepo.GetByID(ctx, auditTypeID)
-	description := masterAuditLogType.Name
+	auditLogType, err := uc.auditLogTypeRepo.GetByID(ctx, auditTypeID)
+	description := auditLogType.Name
 
 	if err != nil {
 		description = ""

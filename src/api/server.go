@@ -20,12 +20,10 @@ import (
 
 // Server represents the API server
 type Server struct {
-	httpServer *http.Server
-	jwtService *auth.JWTService
-	userUsecase            *usecase.UserUsecase
-	auditLogUsecase        *usecase.AuditLogUsecase
-	lockedAccountUseCase   *usecase.LockedAccountUsecase
-	masterAuditLogTypeRepo repositories.MasterAuditLogTypeRepository
+	httpServer      *http.Server
+	jwtService      *auth.JWTService
+	userUsecase     *usecase.UserUsecase
+	auditLogUsecase *usecase.AuditLogUsecase
 }
 
 // NewServer creates a new API server
@@ -33,22 +31,16 @@ func NewServer(
 	userRepo repositories.UserRepository,
 	roleRepo repositories.RoleRepository,
 	auditLogRepo repositories.AuditLogRepository,
-	lockedAccountRepo repositories.LockedAccountRepository,
-	masterAuditLogTypeRepo repositories.MasterAuditLogTypeRepository,
+	auditLogTypeRepo repositories.AuditLogTypeRepository,
 	appLogger logger.Logger,
+	twoFactorTokenRepo repositories.TwoFactorTokenRepository,
 ) *Server {
 	// Set up validator
 	validator.Setup()
 
-	// get turnstile secret key from environment variable
-	turnstileSecretKey := os.Getenv("TURNSTILE_SECRET_KEY")
-	turnstileEnabled := os.Getenv("TURNSTILE_ENABLED") == "1"
-
 	// Initialize services
-	turnstileService := auth.NewTurnstileService(turnstileSecretKey, turnstileEnabled)
 	jwtService := auth.NewJWTService()
-	auditLogUsecase := usecase.NewAuditLogUsecase(auditLogRepo, masterAuditLogTypeRepo)
-	lockedAccountUseCase := usecase.NewLockedAccountUsecase(lockedAccountRepo, userRepo)
+	auditLogUsecase := usecase.NewAuditLogUsecase(auditLogRepo, auditLogTypeRepo)
 	userUsecase := usecase.NewUserUseCase(userRepo, roleRepo, jwtService)
 
 	// Set up HTTP routes with the logger
@@ -56,10 +48,9 @@ func NewServer(
 		userRepo,
 		roleRepo,
 		jwtService,
-		turnstileService,
 		auditLogUsecase,
-		lockedAccountUseCase,
 		appLogger,
+		twoFactorTokenRepo,
 	)
 
 	// Create HTTP server
@@ -74,11 +65,10 @@ func NewServer(
 	}
 
 	return &Server{
-		httpServer:           httpServer,
-		jwtService:           jwtService,
-		userUsecase:          userUsecase,
-		auditLogUsecase:      auditLogUsecase,
-		lockedAccountUseCase: lockedAccountUseCase,
+		httpServer:      httpServer,
+		jwtService:      jwtService,
+		userUsecase:     userUsecase,
+		auditLogUsecase: auditLogUsecase,
 	}
 }
 

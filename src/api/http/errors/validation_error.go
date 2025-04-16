@@ -54,6 +54,8 @@ func getErrorMessage(fieldError validator.FieldError) string {
 		return fmt.Sprintf(ms.ValidateMax, strings.ToLower(fieldError.Field()), fieldError.Param())
 	case "kana":
 		return fmt.Sprintf(ms.ValidateKana, strings.ToLower(fieldError.Field()))
+	case "password_policy":
+		return fmt.Sprintf(ms.ValidatePasswordPolicy, strings.ToLower(fieldError.Field()))
 	default:
 		return fmt.Sprintf(ms.ValidateField, strings.ToLower(fieldError.Field()), fieldError.Tag())
 	}

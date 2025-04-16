@@ -8,6 +8,7 @@ import (
 	"github.com/vnlab/makeshop-payment/src/api/http/response"
 	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
 	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/auth"
+	models "github.com/vnlab/makeshop-payment/src/domain/models"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 	"github.com/vnlab/makeshop-payment/src/lib/i18n"
 	"github.com/vnlab/makeshop-payment/src/lib/utils"
@@ -15,26 +16,23 @@ import (
 )
 
 type AuthHandler struct {
-	userUsecase    *usecase.UserUsecase
-	jwtService     *auth.JWTService
-	turnstileService *auth.TurnstileService
+	userUsecase     *usecase.UserUsecase
+	jwtService      *auth.JWTService
 	auditLogUsecase *usecase.AuditLogUsecase
-	lockedAccountUsecase *usecase.LockedAccountUsecase
+	twoFAUsecase    *usecase.TwoFAUsecase
 }
 
 func NewAuthHandler(
 	userUsecase *usecase.UserUsecase,
 	jwtService *auth.JWTService,
-	turnstileService *auth.TurnstileService,
 	auditLogUsecase *usecase.AuditLogUsecase,
-	lockedAccountUsecase *usecase.LockedAccountUsecase,
+	twoFAUsecase *usecase.TwoFAUsecase,
 ) *AuthHandler {
 	return &AuthHandler{
 		userUsecase:     userUsecase,
 		jwtService:      jwtService,
-		turnstileService: turnstileService,
-		auditLogUsecase:  auditLogUsecase,
-		lockedAccountUsecase: lockedAccountUsecase,
+		auditLogUsecase: auditLogUsecase,
+		twoFAUsecase:    twoFAUsecase,
 	}
 }
 
@@ -61,70 +59,51 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		response.ValidationError(w, err)
 		return
 	}
-	
-	var err = h.lockedAccountUsecase.CheckAccountStatus(r.Context(), req.Email)
-	if err != nil {
-		response.Unauthorized(w, i18n.T(r.Context(), err.Error()))
-		return
-	}
-
-	// Verify Turnstile token
-	valid, err := h.turnstileService.VerifyToken(req.TurnstileToken)
-
-	if err != nil {
-		response.BadRequest(w, i18n.T(r.Context(), "turnstile.verify_failed"), nil)
-		return
-	}
-
-	if !valid {
-		response.BadRequest(w, i18n.T(r.Context(), "turnstile.invalid_token"), nil)
-		return
-	}
 
 	loginReq := usecase.LoginRequest{
 		Email:    req.Email,
 		Password: req.Password,
-		TurnstileToken: req.TurnstileToken,
 	}
 
 	result, err := h.userUsecase.Login(r.Context(), loginReq)
 	if err != nil {
-		_ = h.lockedAccountUsecase.HandleFailedLogin(r.Context(), req.Email)
-		var accountStatusErr = h.lockedAccountUsecase.CheckAccountStatus(r.Context(), req.Email)
-		if accountStatusErr != nil {
-			response.Unauthorized(w, i18n.T(r.Context(), accountStatusErr.Error()))
-			return
-		}
-
-		tempLockRemaining, permLockRemaining, countErr := h.lockedAccountUsecase.GetRemainingAttempts(r.Context(), req.Email)
-		if countErr == nil {
-			if tempLockRemaining >= 0 {
-				response.Unauthorized(w, i18n.T(r.Context(), "login.attempts_remaining_temp_lock", tempLockRemaining))
-				return
-			}
-	
-			if permLockRemaining >= 0 {
-				response.Unauthorized(w, i18n.T(r.Context(), "login.attempts_remaining_perm_lock", permLockRemaining))
-				return
-			}
-		}
-
 		response.Unauthorized(w, i18n.T(r.Context(), "login.failed"))
 		return
 	}
 
-	// Log successful login event
+	if result.User.EnabledMFA {
+		verificationResp, err := h.twoFAUsecase.Generate2FAToken(
+			r.Context(),
+			result.User.ID,
+			result.User.MFAType,
+		)
+		if err != nil {
+			response.Error(w, errors.InternalError(i18n.T(r.Context(), "common.error")))
+			return
+		}
+
+		responseData := map[string]interface{}{
+			"requires_mfa": true,
+			"user": map[string]interface{}{
+				"email":    result.User.Email,
+				"mfa_type": models.GetMFATypeTitle(verificationResp.MFAType),
+			},
+			"expires_in":  verificationResp.ExpiresIn,
+			"mfa_type_id": verificationResp.MFAType,
+		}
+
+		response.Success(w, responseData, i18n.T(r.Context(), "login.mfa_required"))
+		return
+	}
+
 	ipAddress := r.RemoteAddr
 	userAgent := r.UserAgent()
 	userID := result.User.ID
 	err = h.auditLogUsecase.LogLoginEvent(r.Context(), &userID, &ipAddress, &userAgent)
-	h.lockedAccountUsecase.UnlockAccountByEmail(r.Context(), req.Email)
 	if err != nil {
 		// TODO: log error
 	}
 
-	// We transform the login response directly here since it's a special case
-	// containing both user data and a token
 	responseData := map[string]interface{}{
 		"token": result.Token,
 		"user":  serializers.NewUserSerializer(result.User).Serialize(),
@@ -239,4 +218,59 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success(w, serializers.NewUserSerializer(user).Serialize(), i18n.T(r.Context(), "ユーザー情報を正常に取得しました"))
+}
+
+// VerifyMFA handles MFA verification
+// @Summary Verify 2FA token
+// @Description Verify a 2FA token to complete the login process
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body validator.VerifyRequest true "2FA verification details"
+// @Success 200 {object} response.Response{data=usecase.VerifyResponse}
+// @Failure 400 {object} response.Response "Bad Request"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 500 {object} response.Response "Internal Server Error"
+// @Router /auth/verify [post]
+func (h *AuthHandler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
+	var req validator.VerifyRequest
+	if err := utils.ParseJSONBody(r, &req); err != nil {
+		response.ValidationError(w, err)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		response.ValidationError(w, err)
+		return
+	}
+
+	result, err := h.twoFAUsecase.Verify2FAToken(r.Context(), req)
+	if err != nil {
+		switch err.Error() {
+		case "user.not_found":
+			response.NotFound(w, i18n.T(r.Context(), "account.not_found"))
+		case "mfa.invalid_token":
+			response.BadRequest(w, i18n.T(r.Context(), "mfa.invalid_token"), nil)
+		case "mfa.expired_token":
+			response.BadRequest(w, i18n.T(r.Context(), "mfa.expired_token"), nil)
+		default:
+			response.Error(w, errors.InternalError(i18n.T(r.Context(), "common.error")))
+		}
+		return
+	}
+
+	ipAddress := r.RemoteAddr
+	userAgent := r.UserAgent()
+	userID := result.User.ID
+	err = h.auditLogUsecase.LogLoginEvent(r.Context(), &userID, &ipAddress, &userAgent)
+	if err != nil {
+		// TODO: log error
+	}
+
+	responseData := map[string]interface{}{
+		"token": result.Token,
+		"user":  serializers.NewUserSerializer(result.User).Serialize(),
+	}
+
+	response.Success(w, responseData, i18n.T(r.Context(), "login.success"))
 }
