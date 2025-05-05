@@ -1,0 +1,15 @@
+version: "2"
+linters:
+  default: none
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - unused
+    - staticcheck
+formatters:
+  enable:
+    - gofmt
+    - goimports

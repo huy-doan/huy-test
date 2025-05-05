@@ -1,0 +1,1434 @@
+basePath: /api/v1
+definitions:
+  models.Permission:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      screen:
+        $ref: '#/definitions/models.Screen'
+      screen_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.Role:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.Screen:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      screen_code:
+        type: string
+      screen_path:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      enabled_mfa:
+        type: boolean
+      full_name:
+        type: string
+      id:
+        type: integer
+      mfa_type:
+        type: integer
+      role:
+        $ref: '#/definitions/models.Role'
+      role_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  role.CreateRoleRequest:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      permission_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - code
+    - name
+    type: object
+  role.RolePermissionUpdateItem:
+    properties:
+      id:
+        type: integer
+      permission_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - id
+    - permission_ids
+    type: object
+  role.UpdateRoleRequest:
+    properties:
+      name:
+        type: string
+      permission_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - name
+    type: object
+  serializers.MerchantListResponse:
+    properties:
+      merchants:
+        items:
+          $ref: '#/definitions/serializers.MerchantResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  serializers.MerchantResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      merchant_name:
+        type: string
+      payment_merchant_id:
+        type: string
+      payment_provider_id:
+        type: integer
+      review_status:
+        type: integer
+      shop_id:
+        type: integer
+      shop_url:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  serializers.PermissionResponse:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      screen:
+        $ref: '#/definitions/serializers.ScreenResponse'
+      updated_at:
+        type: string
+    type: object
+  serializers.ScreenResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      screen_code:
+        type: string
+      screen_path:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  usecase.GenerateVerificationResponse:
+    properties:
+      expires_in:
+        type: integer
+      mfa_type:
+        type: integer
+    type: object
+  usecase.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  usecase.VerifyResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  validator.AdminChangePasswordRequest:
+    properties:
+      new_password:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - new_password
+    - user_id
+    type: object
+  validator.ChangePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  validator.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      enabled_mfa:
+        type: boolean
+      full_name:
+        type: string
+      password:
+        type: string
+      role_id:
+        minimum: 1
+        type: integer
+    required:
+    - email
+    - full_name
+    - password
+    type: object
+  validator.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  validator.RegisterRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        maxLength: 200
+        minLength: 1
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    type: object
+  validator.ResendCodeRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  validator.UpdateProfileRequest:
+    properties:
+      full_name:
+        type: string
+    required:
+    - full_name
+    type: object
+  validator.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      enabled_mfa:
+        type: boolean
+      full_name:
+        maxLength: 200
+        minLength: 1
+        type: string
+      password:
+        type: string
+      role_id:
+        minimum: 1
+        type: integer
+    type: object
+  validator.VerifyRequest:
+    properties:
+      email:
+        type: string
+      token:
+        type: string
+    required:
+    - email
+    - token
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Payment API for Makeshop
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Makeshop Payment API
+  version: "1.0"
+paths:
+  /admin/audit-logs:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all audit logs in the system with optional filtering
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 10)'
+        in: query
+        name: page_size
+        type: integer
+      - description: 'Field to sort by (default: id)'
+        in: query
+        name: sort_field
+        type: string
+      - description: 'Sort order: ascend or descend (default: ascend)'
+        in: query
+        name: sort_order
+        type: string
+      - description: Filter by created date (RFC3339, RFC1123, or YYYY-MM-DD format)
+        in: query
+        name: created_at
+        type: string
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: integer
+      - description: Filter by keyword in description
+        in: query
+        name: keyword
+        type: string
+      - description: Filter by audit log type
+        in: query
+        name: audit_log_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List all audit logs
+      tags:
+      - Admin Audit Log Management
+  /admin/audit-logs/users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of distinct users who have audit log entries
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get distinct users with audit logs
+      tags:
+      - Admin Audit Log Management
+  /admin/merchants:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of merchants with optional filtering and pagination
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 10)'
+        in: query
+        name: page_size
+        type: integer
+      - description: Search query for merchant name, ID, etc.
+        in: query
+        name: search
+        type: string
+      - description: 'Filter by review status (values 1-3, can use multiple times:
+          review_status=1&review_status=2)'
+        in: query
+        name: review_status
+        type: array
+      - description: Filter by creation date start (RFC3339 format)
+        in: query
+        name: created_at_start
+        type: string
+      - description: Filter by creation date end (RFC3339 format)
+        in: query
+        name: created_at_end
+        type: string
+      - description: Field to sort by (e.g., created_at, merchant_name, etc.)
+        in: query
+        name: sort_field
+        type: string
+      - description: 'Sort order (asc or desc, default: desc)'
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/serializers.MerchantListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List merchants
+      tags:
+      - Merchant Management
+  /admin/payouts:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all payouts in the system with optional filtering
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 10)'
+        in: query
+        name: page_size
+        type: integer
+      - description: 'Field to sort by (default: id)'
+        in: query
+        name: sort_field
+        type: string
+      - description: 'Sort order: ascend or descend (default: ascend)'
+        in: query
+        name: sort_order
+        type: string
+      - description: Filter by created date (RFC3339, RFC1123, or YYYY-MM-DD format)
+        in: query
+        name: created_at
+        type: string
+      - description: Filter by sending date (RFC3339, RFC1123, or YYYY-MM-DD format)
+        in: query
+        name: sending_date
+        type: string
+      - description: Filter by sent date (RFC3339, RFC1123, or YYYY-MM-DD format)
+        in: query
+        name: sent_date
+        type: string
+      - description: Filter by payout status
+        in: query
+        name: payout_status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List all payouts
+      tags:
+      - Admin Payout Management
+  /admin/roles:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of roles with pagination
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 10, max: 100)'
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List roles
+      tags:
+      - Admin Role Management
+    post:
+      consumes:
+      - application/json
+      description: Create a new role with permissions
+      parameters:
+      - description: Role creation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/role.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new role
+      tags:
+      - Admin Role Management
+  /admin/roles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a role by ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a role
+      tags:
+      - Admin Role Management
+    get:
+      consumes:
+      - application/json
+      description: Get role details by ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Role'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get a role by ID
+      tags:
+      - Admin Role Management
+    put:
+      consumes:
+      - application/json
+      description: Update a role's details
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/role.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a role
+      tags:
+      - Admin Role Management
+  /admin/roles/permissions/batch:
+    post:
+      consumes:
+      - application/json
+      description: Update permissions for multiple roles in a single request
+      parameters:
+      - description: Batch role permissions update data
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/role.RolePermissionUpdateItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Batch update role permissions
+      tags:
+      - Admin Role Management
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of users with pagination and filtering
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 10, max: 100)'
+        in: query
+        name: page_size
+        type: integer
+      - description: Filter by role ID
+        in: query
+        name: role_id
+        type: integer
+      - description: Search by username, email or role name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - admin users management
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the provided information
+      parameters:
+      - description: User information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/validator.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - admin users management
+  /admin/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a user
+      tags:
+      - admin users management
+    get:
+      consumes:
+      - application/json
+      description: Get a user's details by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get a user by ID
+      tags:
+      - admin users management
+    put:
+      consumes:
+      - application/json
+      description: Update a user's profile information (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update user profile by admin
+      tags:
+      - admin users management
+  /admin/users/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset a user's password by email
+      parameters:
+      - description: Password reset details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.AdminChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Reset user password
+      tags:
+      - admin users management
+  /api/v1/admin/permissions:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all permissions in the system with their associated
+        screens
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    items:
+                      $ref: '#/definitions/serializers.PermissionResponse'
+                    type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List all permissions
+      tags:
+      - Admin Permission Management
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with username and password to get an access token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Login a user
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout a user and invalidate their token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout a user
+      tags:
+      - auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get the current authenticated user's information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get current user information
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with the provided details
+      parameters:
+      - description: User registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Register a new user
+      tags:
+      - auth
+  /auth/resend-code:
+    post:
+      consumes:
+      - application/json
+      description: Resends the verification code for 2FA with rate limiting
+      parameters:
+      - description: Email to send verification code to
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.ResendCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.GenerateVerificationResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Resend verification code
+      tags:
+      - auth
+  /auth/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify a 2FA token to complete the login process
+      parameters:
+      - description: 2FA verification details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.VerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.VerifyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Verify 2FA token
+      tags:
+      - auth
+  /users/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Change the password of the authenticated user
+      parameters:
+      - description: Password change details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Change user password
+      tags:
+      - users
+  /users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the profile of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update the profile of the authenticated user
+      parameters:
+      - description: Profile update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/validator.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
