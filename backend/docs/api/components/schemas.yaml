@@ -1,0 +1,169 @@
+schemas:
+  # Common responses
+  Error:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: false
+      message:
+        type: string
+        example: "Validation error"
+      error:
+        type: object
+        properties:
+          code:
+            type: string
+            example: "VALIDATION_ERROR"
+          type:
+            type: string
+            example: "VALIDATION"
+          details:
+            type: object
+            additionalProperties: true
+
+  SuccessResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      message:
+        type: string
+        example: "Operation completed successfully"
+      data:
+        type: object
+        additionalProperties: true
+
+  # Auth schemas
+  LoginRequest:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        format: email
+        example: "user@example.com"
+      password:
+        type: string
+        format: password
+        example: "Password123!"
+
+  LoginResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      message:
+        type: string
+        example: "Login successful"
+      data:
+        type: object
+        properties:
+          token:
+            type: string
+            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          user:
+            $ref: '#/schemas/User'
+
+  MFARequiredResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      message:
+        type: string
+        example: "MFA verification required"
+      data:
+        type: object
+        properties:
+          requires_mfa:
+            type: boolean
+            example: true
+          user:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "user@example.com"
+              mfa_type:
+                type: string
+                example: "Email"
+          expires_in:
+            type: integer
+            example: 30
+          mfa_type_id:
+            type: integer
+            example: 1
+
+  VerifyRequest:
+    type: object
+    required:
+      - email
+      - token
+    properties:
+      email:
+        type: string
+        format: email
+        example: "user@example.com"
+      token:
+        type: string
+        example: "123456"
+
+  ResendCodeRequest:
+    type: object
+    required:
+      - email
+    properties:
+      email:
+        type: string
+        format: email
+        example: "user@example.com"
+
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      email:
+        type: string
+        example: "user@example.com"
+      full_name:
+        type: string
+        example: "John Doe"
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      enabled_mfa:
+        type: boolean
+        example: true
+      role:
+        $ref: '#/schemas/Role'
+
+  Role:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      code:
+        type: string
+        example: "ADMIN"
+      name:
+        type: string
+        example: "Administrator"
+
+# Security schemes
+securitySchemes:
+  BearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

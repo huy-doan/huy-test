@@ -1,64 +1,63 @@
 package middleware
 
 import (
-	"net/http"
+	"github.com/labstack/echo/v4"
 )
 
-type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
+// MiddlewareFunc is now an Echo middleware function
+type MiddlewareFunc func(echo.HandlerFunc) echo.HandlerFunc
 
-type Middleware func(http.Handler) http.Handler
-
+// MiddlewareBuilder helps with chaining Echo middleware functions
 type MiddlewareBuilder struct {
-	middlewares []any
+	middlewares []any // can be either echo.MiddlewareFunc or func(echo.Context) error
 }
 
+// Build creates a new middleware builder
 func Build(middlewares ...any) *MiddlewareBuilder {
-	return &MiddlewareBuilder{middlewares: middlewares}
+	return &MiddlewareBuilder{
+		middlewares: middlewares,
+	}
 }
 
+// With adds more middleware to the chain
 func (mb *MiddlewareBuilder) With(middlewares ...any) *MiddlewareBuilder {
 	mb.middlewares = append(mb.middlewares, middlewares...)
 	return mb
 }
 
 // Handle applies the middleware chain to the given handler function and returns the final handler
-func (mb *MiddlewareBuilder) Handle(handler http.HandlerFunc) http.HandlerFunc {
-	finalHandler := handler
+func (mb *MiddlewareBuilder) Handle(handler echo.HandlerFunc) echo.HandlerFunc {
+	// If there are no middlewares, just return the handler
+	if len(mb.middlewares) == 0 {
+		return handler
+	}
 
+	// Apply middlewares in reverse order (last middleware first)
+	h := handler
 	for i := len(mb.middlewares) - 1; i >= 0; i-- {
 		middleware := mb.middlewares[i]
-		switch m := middleware.(type) {
-		case MiddlewareFunc:
-			finalHandler = m(finalHandler)
-		case func(http.HandlerFunc) http.HandlerFunc:
-			finalHandler = m(finalHandler)
-		case Middleware:
-			finalHandler = wrapStandardMiddleware(m, finalHandler)
-		case func(http.Handler) http.Handler:
-			finalHandler = wrapStandardMiddleware(m, finalHandler)
-		default:
-			panic("Unsupported middleware type")
+
+		if echoMiddleware, ok := middleware.(echo.MiddlewareFunc); ok {
+			// If it's already an Echo middleware func, use it directly
+			h = echoMiddleware(h)
+		} else if fn, ok := middleware.(func(echo.HandlerFunc) echo.HandlerFunc); ok {
+			// If it's our custom middleware func type
+			h = fn(h)
 		}
 	}
 
-	return finalHandler
-}
-
-// wrapStandardMiddleware wraps standard http.Handler middleware to work with http.HandlerFunc
-func wrapStandardMiddleware(middleware func(http.Handler) http.Handler, handler http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		middleware(handler).ServeHTTP(w, r)
-	}
+	return h
 }
 
 // CreateResponseMiddleware creates a middleware that runs after the handler completes
-func CreateResponseMiddleware(fn func(w http.ResponseWriter, r *http.Request)) MiddlewareFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
+func CreateResponseMiddleware(fn func(c echo.Context)) MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
 			// Execute the handler first
-			next(w, r)
+			err := next(c)
 			// Then run the response logic
-			fn(w, r)
+			fn(c)
+			return err
 		}
 	}
 }

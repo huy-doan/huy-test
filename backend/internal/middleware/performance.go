@@ -1,48 +1,55 @@
 package middleware
 
 import (
-	"net/http"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
 )
 
-// PerformanceThreshold is the duration in milliseconds above which a request is considered slow
-const PerformanceThreshold = 500 // milliseconds
+const (
+	PerformanceThreshold = 500 // milliseconds
+)
 
-// PerformanceMonitor logs performance metrics for API requests
-func PerformanceMonitor(appLogger logger.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (m *MiddlewareManager) PerformanceMonitor(appLogger logger.Logger) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
 			// Start timing
 			startTime := time.Now()
 
 			// Get trace ID if it exists, or use a new one
-			traceID := r.Header.Get("X-Trace-ID")
+			traceID := c.Request().Header.Get("X-Trace-ID")
 			if traceID == "" {
 				traceID = logger.GenerateTraceID()
+				c.Request().Header.Set("X-Trace-ID", traceID)
+				c.Response().Header().Set("X-Trace-ID", traceID)
 			}
 
 			// Create a logger with the trace ID
 			perfLogger := appLogger.WithTraceID(traceID)
 
+			// Set trace ID in context for other middleware/handlers
+			c.Set("traceID", traceID)
+
 			// Process request
-			next.ServeHTTP(w, r)
+			err := next(c)
 
 			// Calculate duration
 			duration := time.Since(startTime)
 
-			// Log performance metrics for slow requests only or when in debug mode
-			// This avoids duplicate logs for normal requests
+			// Log performance metrics for slow requests
 			if duration.Milliseconds() > PerformanceThreshold {
 				fields := map[string]any{
-					"method":      r.Method,
-					"path":        r.URL.Path,
+					"method":      c.Request().Method,
+					"path":        c.Request().URL.Path,
+					"status_code": c.Response().Status,
 					"duration_ms": duration.Milliseconds(),
 					"is_slow":     true,
 				}
 				perfLogger.Warn("Slow API request", fields)
 			}
-		})
+
+			return err
+		}
 	}
 }

@@ -6,12 +6,18 @@ import (
 	"path/filepath"
 
 	"github.com/joho/godotenv"
-	_ "github.com/vnlab/makeshop-payment/docs"
+	"github.com/vnlab/makeshop-payment/internal/controller/auth"
+	"github.com/vnlab/makeshop-payment/internal/middleware"
 	"github.com/vnlab/makeshop-payment/internal/pkg/config"
 	"github.com/vnlab/makeshop-payment/internal/pkg/dbconn"
 	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
+	"github.com/vnlab/makeshop-payment/internal/pkg/validator"
 	"github.com/vnlab/makeshop-payment/internal/server/http"
+	"github.com/vnlab/makeshop-payment/internal/server/router"
+	authService "github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/vnlab/makeshop-payment/src/infrastructure/email"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
+	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 func init() {
@@ -24,36 +30,16 @@ func init() {
 	}
 }
 
-// @title           Makeshop Payment API
-// @version         1.0
-// @description     Payment API for Makeshop
-// @termsOfService  http://swagger.io/terms/
-//
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
-//
-// @license.name  MIT
-// @license.url   https://opensource.org/licenses/MIT
-//
-// @BasePath  /api/v1
-//
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
 func main() {
-	// Connect to database
+	// Load configuration
 	appConfig := config.LoadConfig()
 
-	// Initialize logger as a singleton
+	// Initialize logger
 	logger.InitLogger(&logger.Config{
 		LogLevel:         appConfig.LogLevel,
 		LogDirectory:     appConfig.LogDirectory,
 		EnableConsoleLog: appConfig.EnableConsoleLog,
-		EnableSQLLog:     appConfig.EnableSQLLog,
 	})
-
-	// Get the global logger instance
 	appLogger := logger.GetLogger()
 
 	db, err := dbconn.NewConnection(appLogger)
@@ -65,34 +51,84 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to get SQL DB: %v", err)
 	}
-	defer func() {
-		if err := sqlDB.Close(); err != nil {
-			appLogger.Error("Failed to close database connection", map[string]any{
-				"error": err.Error(),
-			})
-		}
-	}()
-
-	// TODO: use wire and echo
+	defer sqlDB.Close()
 
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(db)
 	roleRepo := repositories.NewRoleRepository(db)
+	// permissionRepo := repositories.NewPermissionRepository(db)
 	auditLogRepo := repositories.NewAuditLogRepository(db)
 	auditLogTypeRepo := repositories.NewAuditLogTypeRepository(db)
 	twoFactorTokenRepo := repositories.NewTwoFactorTokenRepository(db)
+	// payoutRepo := repositories.NewPayoutRepository(db)
+	// payoutRecordRepo := repositories.NewPayoutRecordRepository(db)
+	// merchantRepo := repositories.NewMerchantRepository(db)
 
-	// Create and start API server
-	apiServer := http.NewServer(
-		userRepo,
-		roleRepo,
-		auditLogRepo,
-		auditLogTypeRepo,
+	// Initialize services
+	jwtService := authService.NewJWTService()
+	auditLogUsecase := usecase.NewAuditLogUsecase(auditLogRepo, auditLogTypeRepo, userRepo)
+	userUsecase := usecase.NewUserUseCase(userRepo, roleRepo, jwtService)
+
+	// Initialize mail service
+	mailService, err := email.NewMailService()
+	if err != nil {
+		log.Fatalf("Failed to create mail service: %v", err)
+	}
+
+	twoFAUsecase := usecase.NewTwoFAUsecase(userRepo, twoFactorTokenRepo, jwtService, mailService)
+	// roleUsecase := usecase.NewRoleUsecase(roleRepo, permissionRepo)
+	// permissionUsecase := usecase.NewPermissionUseCase(permissionRepo)
+	// payoutUsecase := usecase.NewPayoutUsecase(payoutRepo, payoutRecordRepo)
+	// merchantUsecase := usecase.NewMerchantUsecase(merchantRepo)
+
+	// Create Echo server
+	srv := http.NewServer(appLogger)
+
+	// Create validator for Echo
+	srv.Echo().Validator = validator.NewValidator()
+
+	// Setup middleware manager with all middleware functions
+	middlewareManager := middleware.NewMiddlewareManager(
 		appLogger,
-		twoFactorTokenRepo,
+		jwtService,
+		auditLogUsecase,
+		db,
 	)
 
-	if err := apiServer.Start(); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	// Apply global middleware
+	srv.Echo().Use(middlewareManager.CORS)
+	srv.Echo().Use(middlewareManager.RequestLogger)
+	srv.Echo().Use(middlewareManager.Performance)
+	srv.Echo().Use(middlewareManager.ErrorHandler)
+	srv.Echo().Use(middlewareManager.RequestLogger)
+
+	// Create controllers
+	authController := auth.NewAuthController(userUsecase, jwtService, auditLogUsecase, twoFAUsecase)
+
+	// TODO: Implement the rest of the controllers
+	// userController := auth.NewUserController(userUsecase, jwtService, auditLogUsecase, appLogger)
+	// roleController := auth.NewRoleController(roleUsecase, appLogger)
+	// permissionController := auth.NewPermissionController(permissionUsecase, appLogger)
+	// payoutController := auth.NewPayoutController(payoutUsecase, appLogger)
+	// auditLogController := auth.NewAuditLogController(auditLogUsecase, appLogger)
+	// merchantController := auth.NewMerchantController(merchantUsecase, appLogger)
+
+	// Setup routes with the middleware manager
+	router.SetupRoutes(
+		srv.Echo(),
+		authController,
+		// userController,
+		// roleController,
+		// permissionController,
+		// payoutController,
+		// auditLogController,
+		// merchantController,
+		middlewareManager,
+	)
+
+	// Start server
+	appLogger.Info("Starting server", map[string]any{"port": appConfig.ServerPort})
+	if err := srv.Start(); err != nil {
+		appLogger.Error("Server failed to start", map[string]any{"error": err.Error()})
 	}
 }

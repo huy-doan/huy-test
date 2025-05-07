@@ -37,9 +37,6 @@ Thumbs.db
 .settings
 .buildpath
 
-# Go pkg windows
-pkg/
-
 # Go workspace file
 go.work
 

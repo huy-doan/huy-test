@@ -6,22 +6,24 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/labstack/echo/v4"
 	"github.com/vnlab/makeshop-payment/src/domain/models"
 	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 const (
-	TargetUserIDKey contextKey = "target_user_id"
-	NewRoleKey      contextKey = "new_role"
-	PayoutIDKey     contextKey = "payout_id"
-	PayinIDKey      contextKey = "payin_id"
+	ContextKey_AuditLogUserID       ContextKey = "user_id"
+	ContextKey_AuditLogTargetUserID ContextKey = "target_user_id"
+	ContextKey_AuditLogNewRole      ContextKey = "new_role"
+	ContextKey_AuditLogPayoutID     ContextKey = "payout_id"
+	ContextKey_AuditLogPayinID      ContextKey = "payin_id"
 )
 
 type AuditLogOptions struct {
 	AuditLogType string
 }
 
-func NewAuditLogger(auditLogUsecase *usecase.AuditLogUsecase) *AuditLogBuilder {
+func (m *MiddlewareManager) NewAuditLogger(auditLogUsecase *usecase.AuditLogUsecase) *AuditLogBuilder {
 	return &AuditLogBuilder{
 		auditLogUsecase: auditLogUsecase,
 	}
@@ -42,38 +44,38 @@ func (a *AuditLogBuilder) WithType(auditLogType string) *AuditLogBuilder {
 	return newBuilder
 }
 
-func (a *AuditLogBuilder) AsMiddleware() MiddlewareFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return a.createMiddleware(next)
-	}
-}
+// AsMiddleware returns an Echo middleware function
+func (a *AuditLogBuilder) AsMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			err := next(c)
 
-func (a *AuditLogBuilder) AsResponseMiddleware() MiddlewareFunc {
-	return CreateResponseMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		a.logAuditEvent(w, r)
-	})
-}
+			// Check if the response was successful
+			if c.Response().Status >= 200 && c.Response().Status < 300 {
+				a.logAuditEvent(c)
+			}
 
-func (a *AuditLogBuilder) createMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		alw := &auditLogResponseWriter{
-			ResponseWriter: w,
-			statusCode:     http.StatusOK,
-		}
-
-		next(alw, r)
-
-		if alw.statusCode >= 200 && alw.statusCode < 300 {
-			a.logAuditEvent(alw, r)
+			return err
 		}
 	}
 }
 
-func (a *AuditLogBuilder) logAuditEvent(_ http.ResponseWriter, r *http.Request) {
-	userIDVal := r.Context().Value(UserIDKey)
+// AsResponseMiddleware returns a middleware that only logs the audit event
+func (a *AuditLogBuilder) AsResponseMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			err := next(c)
+			a.logAuditEvent(c)
+			return err
+		}
+	}
+}
 
-	ipAddress := getIPAddress(r)
-	userAgent := r.UserAgent()
+func (a *AuditLogBuilder) logAuditEvent(c echo.Context) {
+	userIDVal := c.Get(string(ContextKey_AuditLogUserID))
+
+	ipAddress := getIPAddress(c.Request())
+	userAgent := c.Request().UserAgent()
 
 	var userIDInt *int
 	switch v := userIDVal.(type) {
@@ -92,7 +94,7 @@ func (a *AuditLogBuilder) logAuditEvent(_ http.ResponseWriter, r *http.Request) 
 	var payoutID *int
 	var payinID *int
 
-	if targetIDVal := r.Context().Value(TargetUserIDKey); targetIDVal != nil {
+	if targetIDVal := c.Get(string(ContextKey_AuditLogTargetUserID)); targetIDVal != nil {
 		switch v := targetIDVal.(type) {
 		case int:
 			targetUserID = v
@@ -101,19 +103,19 @@ func (a *AuditLogBuilder) logAuditEvent(_ http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	if roleVal := r.Context().Value(NewRoleKey); roleVal != nil {
+	if roleVal := c.Get(string(ContextKey_AuditLogNewRole)); roleVal != nil {
 		if role, ok := roleVal.(string); ok {
 			newRole = role
 		}
 	}
 
-	if poutID := r.Context().Value(PayoutIDKey); poutID != nil {
+	if poutID := c.Get(string(ContextKey_AuditLogPayoutID)); poutID != nil {
 		if id, ok := poutID.(*int); ok {
 			payoutID = id
 		}
 	}
 
-	if pinID := r.Context().Value(PayinIDKey); pinID != nil {
+	if pinID := c.Get(string(ContextKey_AuditLogPayinID)); pinID != nil {
 		if id, ok := pinID.(*int); ok {
 			payinID = id
 		}
@@ -128,61 +130,52 @@ func (a *AuditLogBuilder) logAuditEvent(_ http.ResponseWriter, r *http.Request) 
 	}
 
 	var err error
+	ctx := c.Request().Context()
 
 	switch a.options.AuditLogType {
 	case models.AuditLogTypeLogin:
-		err = a.auditLogUsecase.LogLoginEvent(r.Context(), &targetUserID, ipAddressPtr, userAgentPtr)
+		err = a.auditLogUsecase.LogLoginEvent(ctx, &targetUserID, ipAddressPtr, userAgentPtr)
 	case models.AuditLogTypeLogout:
-		err = a.auditLogUsecase.LogLogoutEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr)
+		err = a.auditLogUsecase.LogLogoutEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
 	case models.AuditLogTypePasswordChange:
-		err = a.auditLogUsecase.LogPasswordChangeEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr)
+		err = a.auditLogUsecase.LogPasswordChangeEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
 	case models.AuditLogTypePasswordReset:
-		err = a.auditLogUsecase.LogPasswordResetEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+		err = a.auditLogUsecase.LogPasswordResetEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
 	case models.AuditLogTypeUserCreate:
-		err = a.auditLogUsecase.LogUserCreateEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+		err = a.auditLogUsecase.LogUserCreateEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
 	case models.AuditLogTypeUserUpdate:
-		err = a.auditLogUsecase.LogUserUpdateEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+		err = a.auditLogUsecase.LogUserUpdateEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
 	case models.AuditLogTypeUserDelete:
-		err = a.auditLogUsecase.LogUserDeleteEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+		err = a.auditLogUsecase.LogUserDeleteEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
 	case models.AuditLogTypeRoleChange:
-		err = a.auditLogUsecase.LogRoleChangeEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, targetUserID, newRole)
+		err = a.auditLogUsecase.LogRoleChangeEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID, newRole)
 	case models.AuditLogTypePayoutRequest:
-		err = a.auditLogUsecase.LogPayoutRequestEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+		err = a.auditLogUsecase.LogPayoutRequestEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
 	case models.AuditLogTypePayoutApproval:
-		err = a.auditLogUsecase.LogPayoutApprovalEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+		err = a.auditLogUsecase.LogPayoutApprovalEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
 	case models.AuditLogTypePayoutReject:
-		err = a.auditLogUsecase.LogPayoutRejectEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+		err = a.auditLogUsecase.LogPayoutRejectEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
 	case models.AuditLogType2FAEnable:
-		err = a.auditLogUsecase.Log2FAEnableEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+		err = a.auditLogUsecase.Log2FAEnableEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
 	case models.AuditLogType2FADisable:
-		err = a.auditLogUsecase.Log2FADisableEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+		err = a.auditLogUsecase.Log2FADisableEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
 	case models.AuditLogTypeManualPayinImport:
-		err = a.auditLogUsecase.LogManualPayinImportEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, payinID)
+		err = a.auditLogUsecase.LogManualPayinImportEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payinID)
 	case models.AuditLogTypePayoutResend:
-		err = a.auditLogUsecase.LogPayoutResendEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+		err = a.auditLogUsecase.LogPayoutResendEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
 	case models.AuditLogTypePayoutMarkSent:
-		err = a.auditLogUsecase.LogPayoutMarkSentEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+		err = a.auditLogUsecase.LogPayoutMarkSentEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
 	case models.AuditLogTypeMerchantStatusUpload:
-		err = a.auditLogUsecase.LogMerchantStatusUploadEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr)
+		err = a.auditLogUsecase.LogMerchantStatusUploadEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
 	case models.AuditLogTypeExternalAPIAccess:
-		err = a.auditLogUsecase.LogExternalAPIAccessEvent(r.Context(), userIDInt, ipAddressPtr, userAgentPtr)
+		err = a.auditLogUsecase.LogExternalAPIAccessEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
 	default:
-		err = a.auditLogUsecase.LogEventByType(r.Context(), userIDInt, ipAddressPtr, userAgentPtr, a.options.AuditLogType, nil)
+		err = a.auditLogUsecase.LogEventByType(ctx, userIDInt, ipAddressPtr, userAgentPtr, a.options.AuditLogType, nil)
 	}
 
 	if err != nil {
 		fmt.Printf("Failed to log audit event: %v\n", err)
 	}
-}
-
-type auditLogResponseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (w *auditLogResponseWriter) WriteHeader(code int) {
-	w.statusCode = code
-	w.ResponseWriter.WriteHeader(code)
 }
 
 func getIPAddress(r *http.Request) string {

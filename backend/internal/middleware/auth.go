@@ -1,40 +1,38 @@
-// src/api/http/middleware/auth.go
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
-	"github.com/vnlab/makeshop-payment/src/api/http/response"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 	"slices"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 )
 
 const (
-	UserIDKey   contextKey = "userId"
-	EmailKey    contextKey = "email"
-	RoleIDKey   contextKey = "roleId"
-	RoleCodeKey contextKey = "roleCode"
-	TokenKey    contextKey = "token"
+	ContextKey_AuthUserIDKey ContextKey = "userId"
+	ContextKey_AuthEmail     ContextKey = "email"
+	ContextKey_AuthRoleID    ContextKey = "roleId"
+	ContextKey_AuthRoleCode  ContextKey = "roleCode"
+	ContextKey_AuthToken     ContextKey = "token"
 )
 
-// NewAuthMiddleware creates middleware for JWT authentication
-func NewAuthMiddleware(jwtService *auth.JWTService) func(http.HandlerFunc) http.HandlerFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
+// JWT creates middleware for JWT authentication
+func (m *MiddlewareManager) JWTMiddleware(jwtService *auth.JWTService) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
 			// Get the Authorization header
-			authHeader := r.Header.Get("Authorization")
+			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
-				response.Unauthorized(w, "Authorization header is required")
-				return
+				return echo.NewHTTPError(http.StatusUnauthorized, "Authorization header is required")
 			}
 
 			// Check if header has the correct format
 			headerParts := strings.Split(authHeader, " ")
 			if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-				response.Unauthorized(w, "Authorization header format must be Bearer {token}")
-				return
+				return echo.NewHTTPError(http.StatusUnauthorized, "Authorization header format must be Bearer {token}")
 			}
 
 			// Parse and validate the token
@@ -42,50 +40,46 @@ func NewAuthMiddleware(jwtService *auth.JWTService) func(http.HandlerFunc) http.
 
 			// Check if token is blacklisted
 			if jwtService.IsBlacklisted(tokenString) {
-				response.Unauthorized(w, "Token has been revoked")
-				return
+				return echo.NewHTTPError(http.StatusUnauthorized, "Token has been revoked")
 			}
 
 			claims, err := jwtService.ValidateToken(tokenString)
 			if err != nil {
-				response.Unauthorized(w, "Invalid or expired token")
-				return
+				return echo.NewHTTPError(http.StatusUnauthorized, "Invalid or expired token")
 			}
 
 			// Set user ID and role information in the context
-			ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
-			ctx = context.WithValue(ctx, EmailKey, claims.Email)
-			ctx = context.WithValue(ctx, RoleIDKey, claims.RoleID)
-			ctx = context.WithValue(ctx, RoleCodeKey, claims.RoleCode)
-			ctx = context.WithValue(ctx, TokenKey, tokenString) // save token in context for logout
+			c.Set(string(ContextKey_AuthUserIDKey), claims.UserID)
+			c.Set(string(ContextKey_AuthEmail), claims.Email)
+			c.Set(string(ContextKey_AuthRoleID), claims.RoleID)
+			c.Set(string(ContextKey_AuthRoleCode), claims.RoleCode)
+			c.Set(string(ContextKey_AuthToken), tokenString) // save token in context for logout
 
-			// Call the next handler with modified context
-			next(w, r.WithContext(ctx))
+			// Call the next handler
+			return next(c)
 		}
 	}
 }
 
-// NewRoleMiddleware creates middleware for role-based authorization using role code
-func NewRoleMiddleware(roles ...string) func(http.HandlerFunc) http.HandlerFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			// Get user role from context (set by AuthMiddleware)
-			roleCode, ok := r.Context().Value(RoleCodeKey).(string)
+// RoleAuthorization creates middleware for role-based authorization using role code
+func (m *MiddlewareManager) RoleAuthorization(roles ...string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Get user role from context (set by JWT middleware)
+			roleCode, ok := c.Get(string(ContextKey_AuthRoleCode)).(string)
 			if !ok {
-				response.Unauthorized(w, "Unauthorized: missing role information")
-				return
+				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing role information")
 			}
 
 			// Check if user has one of the required roles
 			authorized := slices.Contains(roles, roleCode)
 
 			if !authorized {
-				response.Forbidden(w, "Forbidden: insufficient permissions")
-				return
+				return echo.NewHTTPError(http.StatusForbidden, "Forbidden: insufficient permissions")
 			}
 
 			// Call the next handler
-			next(w, r)
+			return next(c)
 		}
 	}
 }
