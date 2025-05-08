@@ -13,7 +13,7 @@ import (
 	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
 	"github.com/vnlab/makeshop-payment/internal/pkg/validator"
 	"github.com/vnlab/makeshop-payment/internal/server/http"
-	"github.com/vnlab/makeshop-payment/internal/server/router"
+	server "github.com/vnlab/makeshop-payment/internal/server/router"
 	authService "github.com/vnlab/makeshop-payment/src/infrastructure/auth"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/email"
 	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
@@ -114,7 +114,7 @@ func main() {
 	// merchantController := auth.NewMerchantController(merchantUsecase, appLogger)
 
 	// Setup routes with the middleware manager
-	router.SetupRoutes(
+	server.SetupRoutes(
 		srv.Echo(),
 		authController,
 		// userController,

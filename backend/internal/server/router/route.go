@@ -1,8 +1,6 @@
-package router
+package server
 
 import (
-	"os"
-
 	"github.com/labstack/echo/v4"
 	"github.com/vnlab/makeshop-payment/internal/controller/auth"
 	"github.com/vnlab/makeshop-payment/internal/middleware"
@@ -10,11 +8,6 @@ import (
 
 func SetupRoutes(e *echo.Echo, authController *auth.AuthController, middlewareManager *middleware.MiddlewareManager) {
 	// Health check
-
-	if os.Getenv("API_ENV") != "production" {
-		SetupSwaggerUI(e)
-	}
-
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(200, map[string]string{"status": "ok"})
 	})
