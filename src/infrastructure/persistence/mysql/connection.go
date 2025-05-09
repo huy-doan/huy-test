@@ -8,8 +8,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/config"
+	"github.com/huydq/test/src/infrastructure/logger"
 )
 
 const (

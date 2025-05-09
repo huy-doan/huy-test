@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/email"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/email"
+	"github.com/huydq/test/src/infrastructure/logger"
 )
 
 // Execute runs the email test utility

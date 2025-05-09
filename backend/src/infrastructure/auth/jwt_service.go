@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
+	models "github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/infrastructure/config"
 )
 
 // JWTService provides JWT token generation and validation

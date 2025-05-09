@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	Csv2MysqlShell "github.com/huydq/test/cmd/Csv2MysqlShell"
 	"github.com/spf13/cobra"
-	Csv2MysqlShell "github.com/vnlab/makeshop-payment/cmd/Csv2MysqlShell"
 )
 
 var readers int

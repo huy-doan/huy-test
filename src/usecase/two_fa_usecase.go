@@ -7,11 +7,11 @@ import (
 	"math/rand"
 	"time"
 
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/auth"
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
+	validator "github.com/huydq/test/src/api/http/validator/auth"
+	models "github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/infrastructure/config"
 )
 
 // TwoFAUsecase handles two-factor authentication business logic

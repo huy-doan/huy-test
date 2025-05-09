@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/huydq/test/internal/pkg/logger"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
 )
 
 type Server struct {

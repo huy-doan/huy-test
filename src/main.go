@@ -5,14 +5,14 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "github.com/huydq/test/docs"
+	"github.com/huydq/test/src/api"
+	"github.com/huydq/test/src/api/http/middleware"
+	"github.com/huydq/test/src/infrastructure/config"
+	"github.com/huydq/test/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/persistence/mysql"
+	"github.com/huydq/test/src/infrastructure/persistence/repositories"
 	"github.com/joho/godotenv"
-	_ "github.com/vnlab/makeshop-payment/docs"
-	"github.com/vnlab/makeshop-payment/src/api"
-	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
 )
 
 func init() {

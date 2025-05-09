@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/merchant"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
+	validator "github.com/huydq/test/src/api/http/validator/merchant"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
 	"gorm.io/gorm"
 )
 

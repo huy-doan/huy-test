@@ -2,7 +2,8 @@ package repositories
 
 import (
 	"context"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+
+	"github.com/huydq/test/src/domain/models"
 )
 
 // AuditLogRepository defines the interface for audit log operations

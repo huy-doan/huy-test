@@ -7,15 +7,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/huydq/test/src/api/http/handlers"
+	"github.com/huydq/test/src/api/http/middleware"
+	"github.com/huydq/test/src/api/http/response"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	repoImpl "github.com/huydq/test/src/infrastructure/persistence/repositories"
+	"github.com/huydq/test/src/tests"
+	"github.com/huydq/test/src/usecase"
 	"github.com/stretchr/testify/suite"
-	"github.com/vnlab/makeshop-payment/src/api/http/handlers"
-	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
-	"github.com/vnlab/makeshop-payment/src/api/http/response"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	repoImpl "github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
-	"github.com/vnlab/makeshop-payment/src/tests"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 type PermissionHandlerTestSuite struct {

@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
+	validator "github.com/huydq/test/src/api/http/validator/user"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	repo "github.com/huydq/test/src/infrastructure/persistence/repositories"
+	"github.com/huydq/test/src/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	repo "github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
-	"github.com/vnlab/makeshop-payment/src/tests"
 	"golang.org/x/crypto/bcrypt"
 )
 

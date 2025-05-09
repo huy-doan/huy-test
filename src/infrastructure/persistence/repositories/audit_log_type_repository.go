@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
 	"gorm.io/gorm"
 )
 

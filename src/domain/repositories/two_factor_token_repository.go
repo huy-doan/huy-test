@@ -2,7 +2,8 @@ package repositories
 
 import (
 	"context"
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
+
+	models "github.com/huydq/test/src/domain/models"
 )
 
 type TwoFactorTokenRepository interface {

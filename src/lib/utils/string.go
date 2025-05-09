@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/vnlab/makeshop-payment/src/lib/utils/static"
+	"github.com/huydq/test/src/lib/utils/static"
 )
 
 var kanaReplacers = map[string][]*strings.Replacer{

@@ -1,9 +1,9 @@
 package server
 
 import (
+	"github.com/huydq/test/internal/controller/auth"
+	"github.com/huydq/test/internal/middleware"
 	"github.com/labstack/echo/v4"
-	"github.com/vnlab/makeshop-payment/internal/controller/auth"
-	"github.com/vnlab/makeshop-payment/internal/middleware"
 )
 
 func SetupRoutes(e *echo.Echo, authController *auth.AuthController, middlewareManager *middleware.MiddlewareManager) {

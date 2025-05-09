@@ -1,6 +1,6 @@
 package validator
 
-import "github.com/vnlab/makeshop-payment/src/lib/validator"
+import "github.com/huydq/test/src/lib/validator"
 
 type UpdateUserRequest struct {
 	FullName   *string `json:"full_name,omitempty" validate:"omitempty,min=1,max=200"`

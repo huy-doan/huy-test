@@ -3,11 +3,12 @@ package usecase
 import (
 	"context"
 	"errors"
-	userValidator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+
+	userValidator "github.com/huydq/test/src/api/http/validator/user"
+	validator "github.com/huydq/test/src/api/http/validator/user"
+	models "github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	"github.com/huydq/test/src/infrastructure/auth"
 	"golang.org/x/crypto/bcrypt"
 )
 

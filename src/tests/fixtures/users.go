@@ -1,7 +1,7 @@
 package fixtures
 
 import (
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/huydq/test/src/domain/models"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -8,10 +8,10 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/remote"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/storage"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/infrastructure/remote"
+	"github.com/huydq/test/src/infrastructure/storage"
+	"github.com/huydq/test/src/usecase"
 )
 
 type ServerToS3 struct {

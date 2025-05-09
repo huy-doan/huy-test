@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/huydq/test/src/api/http/handlers"
+	"github.com/huydq/test/src/api/http/middleware"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/infrastructure/logger"
+	"github.com/huydq/test/src/usecase"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"github.com/vnlab/makeshop-payment/src/api/http/handlers"
-	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 // SetupRouter sets up the HTTP router with all routes and middleware

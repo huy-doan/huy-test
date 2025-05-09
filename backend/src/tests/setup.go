@@ -3,10 +3,10 @@ package tests
 import (
 	"sync"
 
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/persistence/mysql"
 	"github.com/stretchr/testify/suite"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
 	"gorm.io/gorm"
 )
 

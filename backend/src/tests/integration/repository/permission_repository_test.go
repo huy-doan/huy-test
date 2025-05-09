@@ -5,15 +5,16 @@ import (
 	"log"
 	"testing"
 
+	"slices"
+
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	repoImpl "github.com/huydq/test/src/infrastructure/persistence/repositories"
+	"github.com/huydq/test/src/tests"
+	"github.com/huydq/test/src/tests/fixtures"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	repoImpl "github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
-	"github.com/vnlab/makeshop-payment/src/tests"
-	"github.com/vnlab/makeshop-payment/src/tests/fixtures"
-	"slices"
 )
 
 // PermissionRepositoryTestSuite defines the test suite for permission repository

@@ -7,8 +7,8 @@ import (
 
 	"gorm.io/gorm"
 
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
-	repositories "github.com/vnlab/makeshop-payment/src/domain/repositories"
+	models "github.com/huydq/test/src/domain/models"
+	repositories "github.com/huydq/test/src/domain/repositories"
 )
 
 // TwoFactorTokenRepositoryImpl implements TwoFactorTokenRepository

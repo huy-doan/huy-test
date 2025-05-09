@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/huydq/test/src/infrastructure/auth"
 )
 
 const (

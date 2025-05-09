@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"github.com/huydq/test/internal/pkg/database"
+	"github.com/huydq/test/internal/pkg/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/vnlab/makeshop-payment/internal/pkg/database"
-	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
 	"gorm.io/gorm"
 )
 

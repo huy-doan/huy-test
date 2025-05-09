@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	ms "github.com/vnlab/makeshop-payment/src/lib/messages"
+	ms "github.com/huydq/test/src/lib/messages"
 )
 
 // Error represents a domain error

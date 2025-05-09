@@ -7,16 +7,16 @@ import (
 
 	"fmt"
 
-	"github.com/vnlab/makeshop-payment/src/api/http/errors"
-	"github.com/vnlab/makeshop-payment/src/api/http/middleware"
-	"github.com/vnlab/makeshop-payment/src/api/http/response"
-	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/lib/i18n"
-	"github.com/vnlab/makeshop-payment/src/lib/utils"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/test/src/api/http/errors"
+	"github.com/huydq/test/src/api/http/middleware"
+	"github.com/huydq/test/src/api/http/response"
+	"github.com/huydq/test/src/api/http/serializers"
+	validator "github.com/huydq/test/src/api/http/validator/user"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/lib/i18n"
+	"github.com/huydq/test/src/lib/utils"
+	"github.com/huydq/test/src/usecase"
 )
 
 type UserHandler struct {

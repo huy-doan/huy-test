@@ -3,7 +3,7 @@ package fixtures
 import (
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/huydq/test/src/domain/models"
 	"gorm.io/gorm"
 )
 

@@ -3,8 +3,8 @@ package middleware
 import (
 	"time"
 
+	"github.com/huydq/test/internal/pkg/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
 )
 
 const (

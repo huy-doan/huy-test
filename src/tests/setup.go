@@ -3,12 +3,12 @@ package tests
 import (
 	"fmt"
 
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/infrastructure/config"
+	"github.com/huydq/test/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/persistence/mysql"
 	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/suite"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
 	"gorm.io/gorm"
 )
 

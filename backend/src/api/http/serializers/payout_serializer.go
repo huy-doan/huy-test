@@ -1,6 +1,6 @@
 package serializers
 
-import "github.com/vnlab/makeshop-payment/src/domain/models"
+import "github.com/huydq/test/src/domain/models"
 
 type PayoutSerializer struct {
 	Payout *models.Payout

@@ -1,7 +1,7 @@
 package role
 
 import (
-	"github.com/vnlab/makeshop-payment/src/lib/validator"
+	"github.com/huydq/test/src/lib/validator"
 )
 
 // CreateRoleRequest represents a request to create a new role

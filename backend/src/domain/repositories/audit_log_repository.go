@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories/filter"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories/filter"
 )
 
 // AuditLogRepository defines the interface for audit log operations

@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/vnlab/makeshop-payment/cmd/service"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
-	dbRepo "github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/storage"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/test/cmd/service"
+	"github.com/huydq/test/src/infrastructure/config"
+	dbRepo "github.com/huydq/test/src/infrastructure/persistence/repositories"
+	"github.com/huydq/test/src/infrastructure/storage"
+	"github.com/huydq/test/src/usecase"
 )
 
 func Execute(reader, fileLoadPerStream, lineOfDataReadePerStream int) {

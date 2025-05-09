@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/logger"
 )
 
 // PerformanceThreshold is the duration in milliseconds above which a request is considered slow

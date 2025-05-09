@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	apiErrors "github.com/vnlab/makeshop-payment/src/api/http/errors"
-	"github.com/vnlab/makeshop-payment/src/api/http/response"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	apiErrors "github.com/huydq/test/src/api/http/errors"
+	"github.com/huydq/test/src/api/http/response"
+	"github.com/huydq/test/src/infrastructure/logger"
 )
 
 // Logger context key for storing logger in request context

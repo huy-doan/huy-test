@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vnlab/makeshop-payment/src/api/http/response"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
+	"github.com/huydq/test/src/api/http/response"
+	"github.com/huydq/test/src/infrastructure/auth"
 )
 
 const (

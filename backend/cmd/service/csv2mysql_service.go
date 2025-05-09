@@ -8,9 +8,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/storage"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/infrastructure/storage"
+	"github.com/huydq/test/src/usecase"
 )
 
 type CSVToMySQL struct {

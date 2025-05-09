@@ -10,13 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/api/http/router"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/email"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/lib/validator"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/test/src/api/http/router"
+	"github.com/huydq/test/src/domain/repositories"
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/infrastructure/email"
+	"github.com/huydq/test/src/infrastructure/logger"
+	"github.com/huydq/test/src/lib/validator"
+	"github.com/huydq/test/src/usecase"
 )
 
 // Server represents the API server

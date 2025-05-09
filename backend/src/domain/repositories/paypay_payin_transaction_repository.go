@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/huydq/test/src/domain/models"
 )
 
 type PayinTransactionRepository interface {

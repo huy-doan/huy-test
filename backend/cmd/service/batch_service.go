@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/persistence/mysql"
+	"github.com/huydq/test/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/persistence/mysql"
 	"gorm.io/gorm"
 )
 

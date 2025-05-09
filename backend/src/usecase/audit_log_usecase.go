@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories/filter"
-	"github.com/vnlab/makeshop-payment/src/lib/i18n"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	"github.com/huydq/test/src/domain/repositories/filter"
+	"github.com/huydq/test/src/lib/i18n"
 )
 
 // AuditLogUsecase handles audit logging business logic

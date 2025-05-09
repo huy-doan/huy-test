@@ -3,9 +3,9 @@ package auth
 import (
 	"net/http"
 
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/usecase"
 	"github.com/labstack/echo/v4"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 type AuthController struct {

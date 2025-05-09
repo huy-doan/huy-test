@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/lib/utils"
-	"github.com/vnlab/makeshop-payment/src/lib/utils/static"
+	"github.com/huydq/test/src/lib/utils"
+	"github.com/huydq/test/src/lib/utils/static"
 )
 
 // MessageComposer handles email message preparation and composition

@@ -4,10 +4,10 @@ import (
 	"context"
 	"math"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	domainFilter "github.com/vnlab/makeshop-payment/src/domain/repositories/filter"
-	infraFilter "github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories/filter"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	domainFilter "github.com/huydq/test/src/domain/repositories/filter"
+	infraFilter "github.com/huydq/test/src/infrastructure/persistence/repositories/filter"
 	"gorm.io/gorm"
 )
 

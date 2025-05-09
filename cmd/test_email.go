@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/huydq/test/cmd/TestEmail"
 	"github.com/spf13/cobra"
-	"github.com/vnlab/makeshop-payment/cmd/TestEmail"
 )
 
 // testEmailCmd represents the testEmail command

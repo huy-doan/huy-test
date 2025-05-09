@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/huydq/test/cmd/ExampleShell"
 	"github.com/spf13/cobra"
-	"github.com/vnlab/makeshop-payment/cmd/ExampleShell"
 )
 
 // exampleShell represents the ExampleShell command.

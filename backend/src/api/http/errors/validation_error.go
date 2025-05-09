@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	ms "github.com/vnlab/makeshop-payment/src/lib/messages"
+	ms "github.com/huydq/test/src/lib/messages"
 )
 
 // ValidationErrorDetail represents a single validation error

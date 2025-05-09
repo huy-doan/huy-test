@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/merchant"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+	validator "github.com/huydq/test/src/api/http/validator/merchant"
+	"github.com/huydq/test/src/domain/models"
 )
 
 // MerchantRepository defines the interface for merchant data operations

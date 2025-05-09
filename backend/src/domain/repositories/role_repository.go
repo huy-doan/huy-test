@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories/filter"
+	models "github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories/filter"
 )
 
 // RoleRepository defines the interface for role data access

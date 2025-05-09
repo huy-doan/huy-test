@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/domain/repositories"
+	"github.com/huydq/test/src/domain/repositories/filter"
+	repoImpl "github.com/huydq/test/src/infrastructure/persistence/repositories"
+	"github.com/huydq/test/src/tests"
+	"github.com/huydq/test/src/tests/fixtures"
+	"github.com/huydq/test/src/usecase"
 	"github.com/stretchr/testify/suite"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories/filter"
-	repoImpl "github.com/vnlab/makeshop-payment/src/infrastructure/persistence/repositories"
-	"github.com/vnlab/makeshop-payment/src/tests"
-	"github.com/vnlab/makeshop-payment/src/tests/fixtures"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 )
 
 type PayoutUsecaseTestSuite struct {

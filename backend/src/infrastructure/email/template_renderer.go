@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/logger"
 )
 
 // TemplateRenderer handles email template loading and rendering

@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"github.com/vnlab/makeshop-payment/src/lib/validator"
+	"github.com/huydq/test/src/lib/validator"
 )
 
 type UserListFilter struct {

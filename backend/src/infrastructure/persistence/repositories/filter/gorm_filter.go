@@ -3,7 +3,7 @@ package filter
 import (
 	"fmt"
 
-	domainFilter "github.com/vnlab/makeshop-payment/src/domain/repositories/filter"
+	domainFilter "github.com/huydq/test/src/domain/repositories/filter"
 	"gorm.io/gorm"
 )
 

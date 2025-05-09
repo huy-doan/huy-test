@@ -3,7 +3,7 @@ package validator
 import (
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/lib/validator"
+	"github.com/huydq/test/src/lib/validator"
 )
 
 type MerchantListFilter struct {

@@ -3,7 +3,7 @@ package serializers
 import (
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/huydq/test/src/domain/models"
 )
 
 // MerchantResponse represents the serialized merchant for API responses and documentation

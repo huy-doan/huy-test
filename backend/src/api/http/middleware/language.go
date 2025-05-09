@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/vnlab/makeshop-payment/src/lib/i18n"
+	"github.com/huydq/test/src/lib/i18n"
 )
 
 var initialized bool

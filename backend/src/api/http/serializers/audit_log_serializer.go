@@ -3,7 +3,7 @@ package serializers
 import (
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/huydq/test/src/domain/models"
 )
 
 // AuditLogSerializer transforms AuditLog models into client-friendly representations

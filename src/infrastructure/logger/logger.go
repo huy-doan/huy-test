@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/huydq/test/src/infrastructure/config"
 	"github.com/sirupsen/logrus"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
 )
 
 // LogLevel represents logging levels

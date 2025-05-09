@@ -1,6 +1,6 @@
 package validator
 
-import "github.com/vnlab/makeshop-payment/src/lib/validator"
+import "github.com/huydq/test/src/lib/validator"
 
 type UpdateProfileRequest struct {
 	FirstName     string `json:"first_name" validate:"required"`

@@ -3,7 +3,7 @@ package serializers
 import (
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/domain/models"
+	"github.com/huydq/test/src/domain/models"
 )
 
 // PermissionResponse represents the serialized permission for API responses and documentation

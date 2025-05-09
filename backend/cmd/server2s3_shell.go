@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/huydq/test/cmd/Server2S3Shell"
 	"github.com/spf13/cobra"
-	"github.com/vnlab/makeshop-payment/cmd/Server2S3Shell"
 )
 
 var workers int

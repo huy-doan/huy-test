@@ -8,10 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
 	"maps"
+
+	"github.com/google/uuid"
+	"github.com/huydq/test/src/infrastructure/config"
+	"github.com/sirupsen/logrus"
 )
 
 // LogLevel represents logging levels

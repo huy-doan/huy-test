@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/huydq/test/internal/pkg/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
 )
 
 type responseRecorder struct {

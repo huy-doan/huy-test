@@ -1,6 +1,6 @@
 package fixtures
 
-import "github.com/vnlab/makeshop-payment/src/domain/models"
+import "github.com/huydq/test/src/domain/models"
 
 // GetMockRole returns a mock role with the specified ID and code
 func GetMockRole(id int, code string) *models.Role {

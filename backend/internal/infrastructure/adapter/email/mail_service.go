@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/vnlab/makeshop-payment/internal/pkg/config"
-	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
-	"github.com/vnlab/makeshop-payment/internal/pkg/utils"
+	"github.com/huydq/test/internal/pkg/config"
+	"github.com/huydq/test/internal/pkg/logger"
+	"github.com/huydq/test/internal/pkg/utils"
 )
 
 // TwoFACodeEmailData contains data required for 2FA code emails

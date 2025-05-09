@@ -1,11 +1,11 @@
 package middleware
 
 import (
+	"github.com/huydq/test/internal/pkg/logger"
+	"github.com/huydq/test/src/domain/models"
+	"github.com/huydq/test/src/infrastructure/auth"
+	"github.com/huydq/test/src/usecase"
 	"github.com/labstack/echo/v4"
-	"github.com/vnlab/makeshop-payment/internal/pkg/logger"
-	"github.com/vnlab/makeshop-payment/src/domain/models"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/auth"
-	"github.com/vnlab/makeshop-payment/src/usecase"
 	"gorm.io/gorm"
 )
 

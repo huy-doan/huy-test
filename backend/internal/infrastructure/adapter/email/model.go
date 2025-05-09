@@ -1,7 +1,7 @@
 package email
 
 import (
-	"github.com/vnlab/makeshop-payment/internal/pkg/utils"
+	"github.com/huydq/test/internal/pkg/utils"
 )
 
 // Constants for email content types

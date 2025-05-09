@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/logger"
 )
 
 // RequestLoggerMiddleware logs information about incoming HTTP requests

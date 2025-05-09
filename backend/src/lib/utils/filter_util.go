@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/common"
-	"github.com/vnlab/makeshop-payment/src/domain/repositories/filter"
+	validator "github.com/huydq/test/src/api/http/validator/common"
+	"github.com/huydq/test/src/domain/repositories/filter"
 )
 
 // ExtractPaginationAndSorting extracts pagination and sorting parameters from a request

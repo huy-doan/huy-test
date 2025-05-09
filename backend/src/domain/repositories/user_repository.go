@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/user"
-	models "github.com/vnlab/makeshop-payment/src/domain/models"
+	validator "github.com/huydq/test/src/api/http/validator/user"
+	models "github.com/huydq/test/src/domain/models"
 )
 
 // UserRepository defines the interface for user data access

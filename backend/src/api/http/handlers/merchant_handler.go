@@ -6,12 +6,12 @@ import (
 
 	"fmt"
 
-	"github.com/vnlab/makeshop-payment/src/api/http/response"
-	"github.com/vnlab/makeshop-payment/src/api/http/serializers"
-	validator "github.com/vnlab/makeshop-payment/src/api/http/validator/merchant"
-	"github.com/vnlab/makeshop-payment/src/lib/i18n"
-	"github.com/vnlab/makeshop-payment/src/lib/utils"
-	"github.com/vnlab/makeshop-payment/src/usecase"
+	"github.com/huydq/test/src/api/http/response"
+	"github.com/huydq/test/src/api/http/serializers"
+	validator "github.com/huydq/test/src/api/http/validator/merchant"
+	"github.com/huydq/test/src/lib/i18n"
+	"github.com/huydq/test/src/lib/utils"
+	"github.com/huydq/test/src/usecase"
 )
 
 // MerchantHandler handles HTTP requests related to merchants

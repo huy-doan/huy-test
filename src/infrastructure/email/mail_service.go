@@ -20,10 +20,10 @@ import (
 	"golang.org/x/text/encoding/japanese"
 	"golang.org/x/text/transform"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/config"
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
-	"github.com/vnlab/makeshop-payment/src/lib/utils"
-	"github.com/vnlab/makeshop-payment/src/lib/utils/static"
+	"github.com/huydq/test/src/infrastructure/config"
+	"github.com/huydq/test/src/infrastructure/logger"
+	"github.com/huydq/test/src/lib/utils"
+	"github.com/huydq/test/src/lib/utils/static"
 )
 
 // Constants for email content types

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vnlab/makeshop-payment/src/infrastructure/logger"
+	"github.com/huydq/test/src/infrastructure/logger"
 )
 
 // SMTPClient handles communication with the SMTP server

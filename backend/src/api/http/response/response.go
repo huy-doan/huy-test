@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	apiErrors "github.com/vnlab/makeshop-payment/src/api/http/errors"
+	apiErrors "github.com/huydq/test/src/api/http/errors"
 )
 
 // Response is the standard API response structure

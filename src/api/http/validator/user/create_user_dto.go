@@ -1,6 +1,6 @@
 package validator
 
-import "github.com/vnlab/makeshop-payment/src/lib/validator"
+import "github.com/huydq/test/src/lib/validator"
 
 // CreateUserRequest represents the request body for creating a new user
 type CreateUserRequest struct {
