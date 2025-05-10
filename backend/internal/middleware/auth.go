@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/huydq/test/internal/infrastructure/adapter/auth"
 	"github.com/labstack/echo/v4"
-
-	"github.com/huydq/test/src/infrastructure/auth"
 )
 
 const (

@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"github.com/huydq/test/internal/domain/service"
+	"github.com/huydq/test/internal/infrastructure/adapter/auth"
 	"github.com/huydq/test/internal/pkg/logger"
-	"github.com/huydq/test/src/infrastructure/auth"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )

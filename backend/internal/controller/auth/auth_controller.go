@@ -6,11 +6,11 @@ import (
 	"github.com/huydq/test/internal/controller/auth/mapper"
 	"github.com/huydq/test/internal/controller/base"
 	"github.com/huydq/test/internal/datastructure/inputdata"
+	authService "github.com/huydq/test/internal/infrastructure/adapter/auth"
 	"github.com/huydq/test/internal/middleware"
 	"github.com/huydq/test/internal/pkg/errors"
 	authUC "github.com/huydq/test/internal/usecase/auth"
 	twoFAUC "github.com/huydq/test/internal/usecase/two_fa"
-	authService "github.com/huydq/test/src/infrastructure/auth"
 	"github.com/labstack/echo/v4"
 )
 

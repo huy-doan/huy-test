@@ -4,7 +4,7 @@ import (
 	"github.com/huydq/test/internal/datastructure/inputdata"
 	"github.com/huydq/test/internal/datastructure/outputdata"
 	"github.com/huydq/test/internal/domain/model/user"
-	"github.com/huydq/test/src/lib/validator"
+	"github.com/huydq/test/internal/pkg/validator"
 )
 
 type UserListRequest struct {
@@ -17,8 +17,8 @@ type UserListRequest struct {
 }
 
 func (r *UserListRequest) Validate() error {
-	v := validator.GetValidate()
-	return v.Struct(r)
+	v := validator.NewValidator()
+	return v.Validate(r)
 }
 
 func (r *UserListRequest) ToUserListInputData() *inputdata.UserListInputData {

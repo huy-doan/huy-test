@@ -42,7 +42,7 @@ import (
 	twoFAUC "github.com/huydq/test/internal/usecase/two_fa"
 	userUC "github.com/huydq/test/internal/usecase/user"
 
-	authService "github.com/huydq/test/src/infrastructure/auth"
+	authService "github.com/huydq/test/internal/infrastructure/adapter/auth"
 )
 
 func init() {

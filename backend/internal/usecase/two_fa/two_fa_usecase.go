@@ -16,8 +16,8 @@ import (
 	"github.com/huydq/test/internal/infrastructure/adapter/auth"
 	"github.com/huydq/test/internal/infrastructure/adapter/email"
 
+	"github.com/huydq/test/internal/pkg/config"
 	"github.com/huydq/test/internal/pkg/database"
-	"github.com/huydq/test/src/infrastructure/config"
 )
 
 // TwoFAUsecase interface defines the contract for two-factor authentication use cases
