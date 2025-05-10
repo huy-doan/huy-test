@@ -1,0 +1,16 @@
+type: object
+properties:
+  success:
+    type: boolean
+    example: true
+  message:
+    type: string
+    example: "Login successful"
+  data:
+    type: object
+    properties:
+      token:
+        type: string
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      user:
+        $ref: '#/components/schemas/User'

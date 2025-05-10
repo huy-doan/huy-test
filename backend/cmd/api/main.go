@@ -6,18 +6,43 @@ import (
 	"path/filepath"
 
 	"github.com/huydq/test/internal/controller/auth"
+	"github.com/huydq/test/internal/controller/merchant"
+	"github.com/huydq/test/internal/controller/user"
+	internalAuth "github.com/huydq/test/internal/infrastructure/adapter/auth"
+	internalEmail "github.com/huydq/test/internal/infrastructure/adapter/email"
+	auditLogPersistence "github.com/huydq/test/internal/infrastructure/persistence/audit_log"
+	merchantPersistence "github.com/huydq/test/internal/infrastructure/persistence/merchant"
+	payoutPersistence "github.com/huydq/test/internal/infrastructure/persistence/payout"
+	payoutRecordPersistence "github.com/huydq/test/internal/infrastructure/persistence/payout_record"
+	permissionPersistence "github.com/huydq/test/internal/infrastructure/persistence/permission"
+	rolePersistence "github.com/huydq/test/internal/infrastructure/persistence/role"
+	twoFactorPersistence "github.com/huydq/test/internal/infrastructure/persistence/two_factor_token"
+	userPersistence "github.com/huydq/test/internal/infrastructure/persistence/user"
+	"github.com/joho/godotenv"
+
+	auditLogController "github.com/huydq/test/internal/controller/audit_log"
+	payoutController "github.com/huydq/test/internal/controller/payout"
+	permissionController "github.com/huydq/test/internal/controller/permission"
+	roleController "github.com/huydq/test/internal/controller/role"
+
+	"github.com/huydq/test/internal/domain/service"
 	"github.com/huydq/test/internal/middleware"
 	"github.com/huydq/test/internal/pkg/config"
 	"github.com/huydq/test/internal/pkg/dbconn"
 	"github.com/huydq/test/internal/pkg/logger"
 	"github.com/huydq/test/internal/pkg/validator"
 	"github.com/huydq/test/internal/server/http"
-	server "github.com/huydq/test/internal/server/router"
+	"github.com/huydq/test/internal/server/router"
+	auditLogUsecase "github.com/huydq/test/internal/usecase/audit_log"
+	authUC "github.com/huydq/test/internal/usecase/auth"
+	merchantUC "github.com/huydq/test/internal/usecase/merchant"
+	payoutUsecase "github.com/huydq/test/internal/usecase/payout"
+	permissionUsecase "github.com/huydq/test/internal/usecase/permission"
+	roleUsecase "github.com/huydq/test/internal/usecase/role"
+	twoFAUC "github.com/huydq/test/internal/usecase/two_fa"
+	userUC "github.com/huydq/test/internal/usecase/user"
+
 	authService "github.com/huydq/test/src/infrastructure/auth"
-	"github.com/huydq/test/src/infrastructure/email"
-	"github.com/huydq/test/src/infrastructure/persistence/repositories"
-	"github.com/huydq/test/src/usecase"
-	"github.com/joho/godotenv"
 )
 
 func init() {
@@ -53,33 +78,51 @@ func main() {
 	}
 	defer sqlDB.Close()
 
-	// Initialize repositories
-	userRepo := repositories.NewUserRepository(db)
-	roleRepo := repositories.NewRoleRepository(db)
-	// permissionRepo := repositories.NewPermissionRepository(db)
-	auditLogRepo := repositories.NewAuditLogRepository(db)
-	auditLogTypeRepo := repositories.NewAuditLogTypeRepository(db)
-	twoFactorTokenRepo := repositories.NewTwoFactorTokenRepository(db)
-	// payoutRepo := repositories.NewPayoutRepository(db)
-	// payoutRecordRepo := repositories.NewPayoutRecordRepository(db)
-	// merchantRepo := repositories.NewMerchantRepository(db)
+	// Initialize internal repositories and services for auth usecase
+	internalUserRepo := userPersistence.NewUserRepository(db)
+	internalRoleRepo := rolePersistence.NewRoleRepository(db)
+	internalPermissionRepo := permissionPersistence.NewPermissionRepository(db)
+	internalAuditLogRepo := auditLogPersistence.NewAuditLogRepository(db)
+	internalTwoFactorRepo := twoFactorPersistence.NewTwoFactorTokenRepository(db)
+	internalMerchantRepo := merchantPersistence.NewMerchantRepository(db)
+	internalPayoutRepo := payoutPersistence.NewPayoutRepository(db)
+	internalPayoutRecordRepo := payoutRecordPersistence.NewPayoutRecordRepository(db)
 
 	// Initialize services
 	jwtService := authService.NewJWTService()
-	auditLogUsecase := usecase.NewAuditLogUsecase(auditLogRepo, auditLogTypeRepo, userRepo)
-	userUsecase := usecase.NewUserUseCase(userRepo, roleRepo, jwtService)
-
-	// Initialize mail service
-	mailService, err := email.NewMailService()
+	internalJwtService := internalAuth.NewJWTService()
+	mailService, err := internalEmail.NewMailService()
 	if err != nil {
-		log.Fatalf("Failed to create mail service: %v", err)
+		log.Fatalf("Failed to create internal mail service: %v", err)
 	}
 
-	twoFAUsecase := usecase.NewTwoFAUsecase(userRepo, twoFactorTokenRepo, jwtService, mailService)
-	// roleUsecase := usecase.NewRoleUsecase(roleRepo, permissionRepo)
-	// permissionUsecase := usecase.NewPermissionUseCase(permissionRepo)
-	// payoutUsecase := usecase.NewPayoutUsecase(payoutRepo, payoutRecordRepo)
-	// merchantUsecase := usecase.NewMerchantUsecase(merchantRepo)
+	auditLogService := service.NewAuditLogService(internalAuditLogRepo)
+	roleService := service.NewRoleService(internalRoleRepo, internalPermissionRepo)
+	permissionService := service.NewPermissionService(internalPermissionRepo)
+	permissionMiddlewareService := service.NewPermissionMiddlewareService(internalPermissionRepo, appLogger)
+	payoutService := service.NewPayoutManagementService(internalPayoutRepo, internalPayoutRecordRepo)
+
+	// Initialize usecases
+	auditLogUsecase := auditLogUsecase.NewAuditLogUsecase(auditLogService)
+	roleUsecase := roleUsecase.NewRoleUsecase(roleService)
+	permissionUsecase := permissionUsecase.NewPermissionUsecase(permissionService)
+
+	twoFAUsecase := twoFAUC.NewTwoFAUsecase(internalUserRepo, internalTwoFactorRepo, internalJwtService, mailService)
+	userManagementUsecase := userUC.NewManageUsersUsecase(internalUserRepo, internalRoleRepo, internalJwtService)
+	merchantManagementUsecase := merchantUC.NewManageMerchantsUsecase(internalMerchantRepo)
+
+	authUsecase := authUC.NewAuthUsecase(internalUserRepo, internalJwtService)
+
+	payoutUsecase := payoutUsecase.NewPayoutUsecase(payoutService)
+
+	// Initialize controllers
+	authController := auth.NewAuthController(authUsecase, jwtService, twoFAUsecase)
+	userController := user.NewUserController(userManagementUsecase)
+	merchantController := merchant.NewMerchantController(merchantManagementUsecase)
+	roleController := roleController.NewRoleController(roleUsecase)
+	permissionController := permissionController.NewPermissionController(permissionUsecase)
+	auditLogController := auditLogController.NewAuditLogController(auditLogUsecase)
+	payoutController := payoutController.NewPayoutController(payoutUsecase)
 
 	// Create Echo server
 	srv := http.NewServer(appLogger)
@@ -91,7 +134,8 @@ func main() {
 	middlewareManager := middleware.NewMiddlewareManager(
 		appLogger,
 		jwtService,
-		auditLogUsecase,
+		auditLogService,
+		permissionMiddlewareService,
 		db,
 	)
 
@@ -101,28 +145,18 @@ func main() {
 	srv.Echo().Use(middlewareManager.Performance)
 	srv.Echo().Use(middlewareManager.ErrorHandler)
 	srv.Echo().Use(middlewareManager.RequestLogger)
-
-	// Create controllers
-	authController := auth.NewAuthController(userUsecase, jwtService, auditLogUsecase, twoFAUsecase)
-
-	// TODO: Implement the rest of the controllers
-	// userController := auth.NewUserController(userUsecase, jwtService, auditLogUsecase, appLogger)
-	// roleController := auth.NewRoleController(roleUsecase, appLogger)
-	// permissionController := auth.NewPermissionController(permissionUsecase, appLogger)
-	// payoutController := auth.NewPayoutController(payoutUsecase, appLogger)
-	// auditLogController := auth.NewAuditLogController(auditLogUsecase, appLogger)
-	// merchantController := auth.NewMerchantController(merchantUsecase, appLogger)
+	srv.Echo().Use(middlewareManager.DBContext)
 
 	// Setup routes with the middleware manager
-	server.SetupRoutes(
+	router.SetupRoutes(
 		srv.Echo(),
 		authController,
-		// userController,
-		// roleController,
-		// permissionController,
-		// payoutController,
-		// auditLogController,
-		// merchantController,
+		userController,
+		merchantController,
+		payoutController,
+		roleController,
+		permissionController,
+		auditLogController,
 		middlewareManager,
 	)
 

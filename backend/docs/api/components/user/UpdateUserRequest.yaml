@@ -1,0 +1,15 @@
+type: object
+properties:
+  email:
+    type: string
+    format: email
+    example: "updated@example.com"
+  name:
+    type: string
+    example: "John Updated"
+  role_id:
+    type: integer
+    example: 3
+  is_active:
+    type: boolean
+    example: true

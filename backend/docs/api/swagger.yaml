@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: Makeshop Payment API
+  description: API for Makeshop payment system
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: /api/v1
+    description: Default server
+
+# Components
+components:
+  schemas:
+    # Auth components
+    LoginRequest:
+      $ref: './components/auth/LoginRequest.yaml'
+    LoginResponse:
+      $ref: './components/auth/LoginResponse.yaml'
+    VerifyMFARequest:
+      $ref: './components/auth/VerifyMFARequest.yaml'
+    VerifyMFAResponse:
+      $ref: './components/auth/VerifyMFAResponse.yaml'
+    ResendCodeRequest:
+      $ref: './components/auth/ResendCodeRequest.yaml'
+    ResendCodeResponse:
+      $ref: './components/auth/ResendCodeResponse.yaml'
+    ChangePasswordRequest:
+      $ref: './components/auth/ChangePasswordRequest.yaml'
+    UpdateProfileRequest:
+      $ref: './components/auth/UpdateProfileRequest.yaml'
+    
+    # User components
+    CreateUserRequest:
+      $ref: './components/user/CreateUserRequest.yaml'
+    UpdateUserRequest:
+      $ref: './components/user/UpdateUserRequest.yaml'
+    
+    # Role components
+    CreateRoleRequest:
+      $ref: './components/role/CreateRoleRequest.yaml'
+    UpdateRoleRequest:
+      $ref: './components/role/UpdateRoleRequest.yaml'
+    
+    # Merchant components
+    CreateMerchantRequest:
+      $ref: './components/merchant/CreateMerchantRequest.yaml'
+    UpdateMerchantRequest:
+      $ref: './components/merchant/UpdateMerchantRequest.yaml'
+    
+    # Payout components
+    PayoutListRequest:
+      $ref: './components/payout/PayoutListRequest.yaml'
+    PayoutListResponse:
+      $ref: './components/payout/PayoutListResponse.yaml'
+    CreatePayoutRequest:
+      $ref: './components/payout/CreatePayoutRequest.yaml'
+    UpdatePayoutRequest:
+      $ref: './components/payout/UpdatePayoutRequest.yaml'
+
+    # Model components
+    User:
+      $ref: './components/model/User.yaml'
+    Role:
+      $ref: './components/model/Role.yaml'
+    Permission:
+      $ref: './components/model/Permission.yaml'
+    Merchant:
+      $ref: './components/model/Merchant.yaml'
+    PaymentProvider:
+      $ref: './components/model/PaymentProvider.yaml'
+    Payout:
+      $ref: './components/model/Payout.yaml'
+    PayoutRecord:
+      $ref: './components/model/PayoutRecord.yaml'
+    AuditLog:
+      $ref: './components/model/AuditLog.yaml'
+    AuditLogType:
+      $ref: './components/model/AuditLogType.yaml'
+    
+    # Common components
+    Error:
+      $ref: './components/common/Error.yaml'
+    NotFoundError:
+      $ref: './components/common/NotFoundError.yaml'
+    UnauthorizedError:
+      $ref: './components/common/UnauthorizedError.yaml'
+    ForbiddenError:
+      $ref: './components/common/ForbiddenError.yaml'
+    InternalServerError:
+      $ref: './components/common/InternalServerError.yaml'
+    SuccessResponse:
+      $ref: './components/common/SuccessResponse.yaml'
+  
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /auth/login:
+    $ref: './paths/auth/login.yaml'
+  /auth/logout:
+    $ref: './paths/auth/logout.yaml'
+  /auth/me:
+    $ref: './paths/auth/me.yaml'
+  /auth/verify:
+    $ref: './paths/auth/verify.yaml'
+  /auth/resend-code:
+    $ref: './paths/auth/resend-code.yaml'
+  /auth/change-password:
+    $ref: './paths/auth/change-password.yaml'
+  /auth/update-profile:
+    $ref: './paths/auth/update-profile.yaml'
+  /users:
+    $ref: './paths/user/list.yaml'
+  /users/{id}:
+    $ref: './paths/user/get.yaml'
+  /users/create:
+    $ref: './paths/user/create.yaml'
+  /users/{id}/update:
+    $ref: './paths/user/update.yaml'
+  /users/{id}/delete:
+    $ref: './paths/user/delete.yaml'
+  /roles:
+    $ref: './paths/role/list.yaml'
+  /roles/{id}:
+    $ref: './paths/role/get.yaml'
+  /roles/create:
+    $ref: './paths/role/create.yaml'
+  /roles/{id}/update:
+    $ref: './paths/role/update.yaml'
+  /roles/{id}/delete:
+    $ref: './paths/role/delete.yaml'
+  /permissions:
+    $ref: './paths/permission/list.yaml'
+  /merchants:
+    $ref: './paths/merchant/list.yaml'
+  /merchants/{id}:
+    $ref: './paths/merchant/get.yaml'
+  /merchants/create:
+    $ref: './paths/merchant/create.yaml'
+  /merchants/{id}/update:
+    $ref: './paths/merchant/update.yaml'
+  /merchants/{id}/delete:
+    $ref: './paths/merchant/delete.yaml'
+  /payment-providers:
+    $ref: './paths/payment-provider/list.yaml'
+  /payouts:
+    $ref: './paths/payout/list.yaml'
+  /payouts/{id}:
+    $ref: './paths/payout/get.yaml'
+  /payouts/create:
+    $ref: './paths/payout/create.yaml'
+  /payouts/{id}/update:
+    $ref: './paths/payout/update.yaml'
+  /payouts/{id}/delete:
+    $ref: './paths/payout/delete.yaml'
+  /audit-logs:
+    $ref: './paths/audit-log/list.yaml'

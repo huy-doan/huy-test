@@ -1,0 +1,85 @@
+get:
+  tags:
+    - merchant
+  summary: List merchants
+  description: Get a paginated list of merchants with optional filters
+  operationId: listMerchants
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+      description: Page number for pagination
+    - name: limit
+      in: query
+      schema:
+        type: integer
+        default: 10
+      description: Number of items per page
+    - name: is_active
+      in: query
+      schema:
+        type: boolean
+      description: Filter by active status
+    - name: search
+      in: query
+      schema:
+        type: string
+      description: Search by name or code
+  responses:
+    '200':
+      description: List of merchants
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Merchants retrieved successfully"
+              data:
+                type: object
+                properties:
+                  merchants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Merchant'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 35
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 10
+                      pages:
+                        type: integer
+                        example: 4
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

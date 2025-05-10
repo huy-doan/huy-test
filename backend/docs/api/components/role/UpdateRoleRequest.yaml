@@ -1,0 +1,13 @@
+type: object
+properties:
+  name:
+    type: string
+    example: "Manager Updated"
+  description:
+    type: string
+    example: "System manager with updated permissions"
+  permission_ids:
+    type: array
+    items:
+      type: integer
+    example: [1, 2, 3, 5, 8, 10, 12]

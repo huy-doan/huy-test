@@ -1,0 +1,20 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 1
+  name:
+    type: string
+    example: "View Dashboard"
+  code:
+    type: string
+    example: "view_dashboard"
+  description:
+    type: string
+    example: "Permission to view dashboard"
+  created_at:
+    type: string
+    format: date-time
+  updated_at:
+    type: string
+    format: date-time

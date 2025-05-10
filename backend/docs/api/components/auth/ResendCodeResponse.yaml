@@ -1,0 +1,26 @@
+type: object
+properties:
+  success:
+    type: boolean
+    example: true
+  message:
+    type: string
+    example: "Verification code has been sent"
+  data:
+    type: object
+    properties:
+      user:
+        type: object
+        properties:
+          email:
+            type: string
+            example: "user@example.com"
+          mfa_type:
+            type: string
+            example: "Email"
+      expires_in:
+        type: integer
+        example: 30
+      mfa_type_id:
+        type: integer
+        example: 1

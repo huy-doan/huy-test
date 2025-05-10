@@ -1,0 +1,51 @@
+put:
+  tags:
+    - auth
+  summary: Update user profile
+  description: Update the currently logged in user's profile information
+  operationId: updateProfile
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/UpdateProfileRequest'
+  responses:
+    '200':
+      description: Profile updated successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Profile updated successfully"
+              data:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+    '400':
+      description: Bad Request - Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '409':
+      description: Conflict - Email already in use
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

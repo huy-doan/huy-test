@@ -1,0 +1,53 @@
+get:
+  tags:
+    - payment-provider
+  summary: List payment providers
+  description: Get a list of available payment providers
+  operationId: listPaymentProviders
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: is_active
+      in: query
+      schema:
+        type: boolean
+      description: Filter by active status
+  responses:
+    '200':
+      description: List of payment providers
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Payment providers retrieved successfully"
+              data:
+                type: object
+                properties:
+                  payment_providers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentProvider'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

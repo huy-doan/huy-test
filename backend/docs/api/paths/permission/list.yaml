@@ -1,0 +1,47 @@
+get:
+  tags:
+    - permission
+  summary: List permissions
+  description: Get a list of all system permissions
+  operationId: listPermissions
+  security:
+    - BearerAuth: []
+  responses:
+    '200':
+      description: List of permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Permissions retrieved successfully"
+              data:
+                type: object
+                properties:
+                  permissions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Permission'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

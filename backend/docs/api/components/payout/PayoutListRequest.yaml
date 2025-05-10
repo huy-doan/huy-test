@@ -1,0 +1,25 @@
+type: object
+properties:
+  page:
+    type: integer
+    example: 1
+    description: Page number for pagination
+  limit:
+    type: integer
+    example: 10
+    description: Number of items per page
+  status:
+    type: string
+    enum: [pending, processing, completed, failed]
+    description: Filter by payout status
+  merchant_id:
+    type: integer
+    description: Filter by merchant ID
+  date_from:
+    type: string
+    format: date
+    description: Filter by date range start
+  date_to:
+    type: string
+    format: date
+    description: Filter by date range end

@@ -1,9 +1,9 @@
 package main
 
 import (
-	cmd "github.com/huydq/test/cmd"
+	batch "github.com/huydq/test/batch"
 )
 
 func main() {
-	cmd.Execute()
+	batch.Execute()
 }

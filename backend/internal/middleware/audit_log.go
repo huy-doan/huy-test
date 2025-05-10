@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/huydq/test/src/domain/models"
-	"github.com/huydq/test/src/usecase"
+	object "github.com/huydq/test/internal/domain/object/audit_log"
+	"github.com/huydq/test/internal/domain/service"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,23 +20,23 @@ const (
 )
 
 type AuditLogOptions struct {
-	AuditLogType string
+	AuditLogType object.AuditLogType
 }
 
-func (m *MiddlewareManager) NewAuditLogger(auditLogUsecase *usecase.AuditLogUsecase) *AuditLogBuilder {
+func (m *MiddlewareManager) NewAuditLogger(auditLogService service.AuditLogService) *AuditLogBuilder {
 	return &AuditLogBuilder{
-		auditLogUsecase: auditLogUsecase,
+		auditLogService: auditLogService,
 	}
 }
 
 type AuditLogBuilder struct {
-	auditLogUsecase *usecase.AuditLogUsecase
+	auditLogService service.AuditLogService
 	options         AuditLogOptions
 }
 
-func (a *AuditLogBuilder) WithType(auditLogType string) *AuditLogBuilder {
+func (a *AuditLogBuilder) WithType(auditLogType object.AuditLogType) *AuditLogBuilder {
 	newBuilder := &AuditLogBuilder{
-		auditLogUsecase: a.auditLogUsecase,
+		auditLogService: a.auditLogService,
 		options: AuditLogOptions{
 			AuditLogType: auditLogType,
 		},
@@ -74,8 +74,11 @@ func (a *AuditLogBuilder) AsResponseMiddleware() echo.MiddlewareFunc {
 func (a *AuditLogBuilder) logAuditEvent(c echo.Context) {
 	userIDVal := c.Get(string(ContextKey_AuditLogUserID))
 
-	ipAddress := getIPAddress(c.Request())
-	userAgent := c.Request().UserAgent()
+	ipAddressStr := getIPAddress(c.Request())
+	userAgentStr := c.Request().UserAgent()
+
+	ipAddress := object.IPAddress(ipAddressStr)
+	userAgent := object.UserAgent(userAgentStr)
 
 	var userIDInt *int
 	switch v := userIDVal.(type) {
@@ -133,44 +136,44 @@ func (a *AuditLogBuilder) logAuditEvent(c echo.Context) {
 	ctx := c.Request().Context()
 
 	switch a.options.AuditLogType {
-	case models.AuditLogTypeLogin:
-		err = a.auditLogUsecase.LogLoginEvent(ctx, &targetUserID, ipAddressPtr, userAgentPtr)
-	case models.AuditLogTypeLogout:
-		err = a.auditLogUsecase.LogLogoutEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
-	case models.AuditLogTypePasswordChange:
-		err = a.auditLogUsecase.LogPasswordChangeEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
-	case models.AuditLogTypePasswordReset:
-		err = a.auditLogUsecase.LogPasswordResetEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
-	case models.AuditLogTypeUserCreate:
-		err = a.auditLogUsecase.LogUserCreateEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
-	case models.AuditLogTypeUserUpdate:
-		err = a.auditLogUsecase.LogUserUpdateEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
-	case models.AuditLogTypeUserDelete:
-		err = a.auditLogUsecase.LogUserDeleteEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
-	case models.AuditLogTypeRoleChange:
-		err = a.auditLogUsecase.LogRoleChangeEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID, newRole)
-	case models.AuditLogTypePayoutRequest:
-		err = a.auditLogUsecase.LogPayoutRequestEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
-	case models.AuditLogTypePayoutApproval:
-		err = a.auditLogUsecase.LogPayoutApprovalEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
-	case models.AuditLogTypePayoutReject:
-		err = a.auditLogUsecase.LogPayoutRejectEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
-	case models.AuditLogType2FAEnable:
-		err = a.auditLogUsecase.Log2FAEnableEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
-	case models.AuditLogType2FADisable:
-		err = a.auditLogUsecase.Log2FADisableEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
-	case models.AuditLogTypeManualPayinImport:
-		err = a.auditLogUsecase.LogManualPayinImportEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payinID)
-	case models.AuditLogTypePayoutResend:
-		err = a.auditLogUsecase.LogPayoutResendEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
-	case models.AuditLogTypePayoutMarkSent:
-		err = a.auditLogUsecase.LogPayoutMarkSentEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
-	case models.AuditLogTypeMerchantStatusUpload:
-		err = a.auditLogUsecase.LogMerchantStatusUploadEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
-	case models.AuditLogTypeExternalAPIAccess:
-		err = a.auditLogUsecase.LogExternalAPIAccessEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
+	case object.AuditLogTypeLogin:
+		err = a.auditLogService.LogLoginEvent(ctx, &targetUserID, ipAddressPtr, userAgentPtr)
+	case object.AuditLogTypeLogout:
+		err = a.auditLogService.LogLogoutEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
+	case object.AuditLogTypePasswordChange:
+		err = a.auditLogService.LogPasswordChangeEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
+	case object.AuditLogTypePasswordReset:
+		err = a.auditLogService.LogPasswordResetEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+	case object.AuditLogTypeUserCreate:
+		err = a.auditLogService.LogUserCreateEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+	case object.AuditLogTypeUserUpdate:
+		err = a.auditLogService.LogUserUpdateEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+	case object.AuditLogTypeUserDelete:
+		err = a.auditLogService.LogUserDeleteEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+	case object.AuditLogTypeRoleChange:
+		err = a.auditLogService.LogRoleChangeEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID, newRole)
+	case object.AuditLogTypePayoutRequest:
+		err = a.auditLogService.LogPayoutRequestEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+	case object.AuditLogTypePayoutApproval:
+		err = a.auditLogService.LogPayoutApprovalEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+	case object.AuditLogTypePayoutReject:
+		err = a.auditLogService.LogPayoutRejectEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+	case object.AuditLogType2FAEnable:
+		err = a.auditLogService.Log2FAEnableEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+	case object.AuditLogType2FADisable:
+		err = a.auditLogService.Log2FADisableEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, targetUserID)
+	case object.AuditLogTypeManualPayinImport:
+		err = a.auditLogService.LogManualPayinImportEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payinID)
+	case object.AuditLogTypePayoutResend:
+		err = a.auditLogService.LogPayoutResendEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+	case object.AuditLogTypePayoutMarkSent:
+		err = a.auditLogService.LogPayoutMarkSentEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr, payoutID)
+	case object.AuditLogTypeMerchantStatusUpload:
+		err = a.auditLogService.LogMerchantStatusUploadEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
+	case object.AuditLogTypeExternalAPIAccess:
+		err = a.auditLogService.LogExternalAPIAccessEvent(ctx, userIDInt, ipAddressPtr, userAgentPtr)
 	default:
-		err = a.auditLogUsecase.LogEventByType(ctx, userIDInt, ipAddressPtr, userAgentPtr, a.options.AuditLogType, nil)
+		err = a.auditLogService.LogEventByType(ctx, userIDInt, ipAddressPtr, userAgentPtr, a.options.AuditLogType, nil)
 	}
 
 	if err != nil {
@@ -196,17 +199,19 @@ func parseInt(s string) int {
 	return i
 }
 
-func hasEnoughDataForAuditLog(auditLogType string, userIDInt *int, targetUserID int, newRole string, payoutID *int, payinID *int) bool {
+func hasEnoughDataForAuditLog(auditLogType object.AuditLogType, userIDInt *int, targetUserID int, newRole string, payoutID *int, payinID *int) bool {
 	switch auditLogType {
-	case models.AuditLogTypeLogin, models.AuditLogTypeLogout, models.AuditLogTypePasswordChange, models.AuditLogTypePasswordReset:
+	case object.AuditLogTypeLogin:
+		return targetUserID != 0
+	case object.AuditLogTypeLogout, object.AuditLogTypePasswordChange, object.AuditLogTypePasswordReset:
 		return userIDInt != nil
-	case models.AuditLogTypeUserCreate, models.AuditLogTypeUserUpdate, models.AuditLogTypeUserDelete, models.AuditLogTypeRoleChange:
+	case object.AuditLogTypeUserCreate, object.AuditLogTypeUserUpdate, object.AuditLogTypeUserDelete, object.AuditLogTypeRoleChange:
 		return userIDInt != nil && targetUserID != 0
-	case models.AuditLogTypePayoutRequest, models.AuditLogTypePayoutApproval, models.AuditLogTypePayoutReject, models.AuditLogTypePayoutResend, models.AuditLogTypePayoutMarkSent:
+	case object.AuditLogTypePayoutRequest, object.AuditLogTypePayoutApproval, object.AuditLogTypePayoutReject, object.AuditLogTypePayoutResend, object.AuditLogTypePayoutMarkSent:
 		return userIDInt != nil && payoutID != nil
-	case models.AuditLogTypeManualPayinImport:
+	case object.AuditLogTypeManualPayinImport:
 		return userIDInt != nil && payinID != nil
-	case models.AuditLogType2FAEnable, models.AuditLogType2FADisable:
+	case object.AuditLogType2FAEnable, object.AuditLogType2FADisable:
 		return userIDInt != nil && targetUserID != 0
 	default:
 		return userIDInt != nil

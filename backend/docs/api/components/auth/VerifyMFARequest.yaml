@@ -1,0 +1,12 @@
+type: object
+required:
+  - email
+  - token
+properties:
+  email:
+    type: string
+    format: email
+    example: "user@example.com"
+  token:
+    type: string
+    example: "Abcd@123456789"

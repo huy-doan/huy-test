@@ -1,0 +1,15 @@
+type: object
+required:
+  - name
+properties:
+  name:
+    type: string
+    example: "Manager"
+  description:
+    type: string
+    example: "System manager with access to most features"
+  permission_ids:
+    type: array
+    items:
+      type: integer
+    example: [1, 2, 3, 5, 8]

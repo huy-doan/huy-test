@@ -1,0 +1,33 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 123
+  merchant_id:
+    type: integer
+    example: 5
+  total_amount:
+    type: number
+    format: float
+    example: 5000.00
+  status:
+    type: string
+    example: "completed"
+    enum: [pending, processing, completed, failed]
+  payment_provider_id:
+    type: integer
+    example: 2
+  payment_provider:
+    $ref: '#/components/schemas/PaymentProvider'
+  merchant:
+    $ref: '#/components/schemas/Merchant'
+  records:
+    type: array
+    items:
+      $ref: './PayoutRecord.yaml'
+  created_at:
+    type: string
+    format: date-time
+  updated_at:
+    type: string
+    format: date-time

@@ -1,0 +1,24 @@
+type: object
+required:
+  - email
+  - password
+  - name
+  - role_id
+properties:
+  email:
+    type: string
+    format: email
+    example: "user@example.com"
+  password:
+    type: string
+    format: password
+    example: "StrongPassword123!"
+  name:
+    type: string
+    example: "John Doe"
+  role_id:
+    type: integer
+    example: 2
+  is_active:
+    type: boolean
+    example: true

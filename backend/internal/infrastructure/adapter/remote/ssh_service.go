@@ -23,40 +23,12 @@ func NewSSHClient(cfg SSHConfig) *SSHClient {
 	return &SSHClient{Config: cfg}
 }
 
-func (c *SSHClient) StreamFiles(remoteDir string) (<-chan string, error) {
-	outCh := make(chan string)
-	cmd := exec.Command("sshpass", "-p", c.Config.Password,
-		"ssh", "-p", fmt.Sprint(c.Config.Port),
-		fmt.Sprintf("%s@%s", c.Config.User, c.Config.Host),
-		fmt.Sprintf("find %s -type f -name '*.csv' | sort", remoteDir),
-	)
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	if err := cmd.Start(); err != nil {
-		return nil, err
-	}
-
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			outCh <- scanner.Text()
-		}
-		close(outCh)
-		cmd.Wait()
-	}()
-
-	return outCh, nil
-}
-
 func (c *SSHClient) StreamFilesPaginated(remoteDir string, pageSize int) (<-chan string, error) {
 	outCh := make(chan string)
 	cmd := exec.Command("sshpass", "-p", c.Config.Password,
 		"ssh", "-p", fmt.Sprint(c.Config.Port),
 		fmt.Sprintf("%s@%s", c.Config.User, c.Config.Host),
-		fmt.Sprintf("find %s -type f -name '*.csv' | sort", remoteDir),
+		fmt.Sprintf("find %s -type f \\( -name '*.csv' -o -name '*.pdf' -o -name '*.zip' \\) | sort", remoteDir),
 	)
 
 	stdout, err := cmd.StdoutPipe()

@@ -22,7 +22,7 @@ const (
 
 // Email template folders
 const (
-	TemplateFolderAuth = "backend/internal/resource/templates/email/auth"
+	TemplateFolderAuth = "auth"
 )
 
 // Email subjects

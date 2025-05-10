@@ -1,0 +1,11 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 1
+  code:
+    type: string
+    example: "ADMIN"
+  name:
+    type: string
+    example: "Administrator"

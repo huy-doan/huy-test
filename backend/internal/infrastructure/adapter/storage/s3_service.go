@@ -19,12 +19,12 @@ type S3Config struct {
 	SecretAccessKey string
 }
 
-type S3Handler struct {
+type S3ServiceConfig struct {
 	client *s3.Client
 	bucket string
 }
 
-func NewS3Handler(cfg S3Config) (*S3Handler, error) {
+func NewS3Service(cfg S3Config) (*S3ServiceConfig, error) {
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(cfg.Region),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKeyID, cfg.SecretAccessKey, "")),
@@ -32,13 +32,13 @@ func NewS3Handler(cfg S3Config) (*S3Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &S3Handler{
+	return &S3ServiceConfig{
 		client: s3.NewFromConfig(awsCfg),
 		bucket: cfg.Bucket,
 	}, nil
 }
 
-func (u *S3Handler) Upload(ctx context.Context, path string) error {
+func (u *S3ServiceConfig) Upload(ctx context.Context, path string) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func PointerOf[T any](value T) *T {
 }
 
 // StreamKeys streams object keys from S3
-func (d *S3Handler) StreamKeys(ctx context.Context, bucket string) (<-chan string, error) {
+func (d *S3ServiceConfig) StreamKeys(ctx context.Context, bucket string) (<-chan string, error) {
 	ch := make(chan string)
 
 	go func() {
@@ -90,7 +90,7 @@ func (d *S3Handler) StreamKeys(ctx context.Context, bucket string) (<-chan strin
 }
 
 // DownloadStream downloads and returns an io.ReadCloser from S3 for streaming
-func (d *S3Handler) DownloadStream(ctx context.Context, bucket, key string) (io.ReadCloser, error) {
+func (d *S3ServiceConfig) DownloadStream(ctx context.Context, bucket, key string) (io.ReadCloser, error) {
 	resp, err := d.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &bucket,
 		Key:    &key,

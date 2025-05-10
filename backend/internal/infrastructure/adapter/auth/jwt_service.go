@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	models "github.com/huydq/test/src/domain/models"
-	"github.com/huydq/test/src/infrastructure/config"
+	"github.com/huydq/test/internal/domain/model/user"
+	"github.com/huydq/test/internal/pkg/config"
 )
 
 // JWTService provides JWT token generation and validation
@@ -21,10 +21,9 @@ type JWTService struct {
 
 // TokenClaims represents the claims in a JWT token
 type TokenClaims struct {
-	UserID   int    `json:"user_id"`
-	Email    string `json:"email"`
-	RoleID   int    `json:"role_id"`
-	RoleCode string `json:"role_code,omitempty"`
+	UserID int    `json:"user_id"`
+	Email  string `json:"email"`
+	RoleID int    `json:"role_id"`
 	jwt.RegisteredClaims
 }
 
@@ -50,21 +49,15 @@ func NewJWTService() *JWTService {
 }
 
 // GenerateToken generates a new JWT token for a user
-func (s *JWTService) GenerateToken(user *models.User) (string, error) {
+func (s *JWTService) GenerateToken(user *user.User) (string, error) {
 	if user == nil {
 		return "", errors.New("user is nil")
 	}
 
-	roleCode := ""
-	if user.Role != nil {
-		roleCode = user.Role.Code
-	}
-
 	claims := TokenClaims{
-		UserID:   user.ID,
-		Email:    user.Email,
-		RoleID:   user.RoleID,
-		RoleCode: roleCode,
+		UserID: user.ID,
+		Email:  user.Email,
+		RoleID: user.RoleID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.tokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

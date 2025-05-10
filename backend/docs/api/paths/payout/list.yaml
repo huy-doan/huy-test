@@ -1,0 +1,69 @@
+get:
+  tags:
+    - payout
+  summary: List payouts
+  description: Get a paginated list of payouts with optional filters
+  operationId: listPayouts
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+      description: Page number for pagination
+    - name: limit
+      in: query
+      schema:
+        type: integer
+        default: 10
+      description: Number of items per page
+    - name: status
+      in: query
+      schema:
+        type: string
+        enum: [pending, processing, completed, failed]
+      description: Filter by payout status
+    - name: merchant_id
+      in: query
+      schema:
+        type: integer
+      description: Filter by merchant ID
+    - name: date_from
+      in: query
+      schema:
+        type: string
+        format: date
+      description: Filter by date range start
+    - name: date_to
+      in: query
+      schema:
+        type: string
+        format: date
+      description: Filter by date range end
+  responses:
+    '200':
+      description: List of payouts
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PayoutListResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

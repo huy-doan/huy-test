@@ -1,0 +1,22 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 1
+  email:
+    type: string
+    example: "user@example.com"
+  full_name:
+    type: string
+    example: "John Doe"
+  created_at:
+    type: string
+    format: date-time
+  updated_at:
+    type: string
+    format: date-time
+  enabled_mfa:
+    type: boolean
+    example: true
+  role:
+    $ref: './Role.yaml'
