@@ -1,0 +1,39 @@
+get:
+  tags:
+    - payout
+  summary: List payouts
+  description: Get a paginated list of payouts with optional filters
+  operationId: listPayouts
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/PayoutListRequest'
+  responses:
+    '200':
+      description: List of payouts
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PayoutListResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

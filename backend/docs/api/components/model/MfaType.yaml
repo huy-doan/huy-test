@@ -1,0 +1,10 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 1
+  title:
+    type: string
+    example: "Email"
+  is_active:
+    type: boolean

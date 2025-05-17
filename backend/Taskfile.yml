@@ -1,0 +1,134 @@
+version: '3'
+
+vars:
+  MYSQL_CONTAINER: makeshop_payment_mysql_1
+  BACKEND_CONTAINER: makeshop_payment_backend_1
+  COVERMODE: set
+
+tasks:
+  default:
+    desc: Display available backend tasks
+    cmds:
+      - task -l
+    silent: true
+
+  build:
+    desc: Build the backend container
+    cmds:
+      - echo "Building the BACKEND..."
+      - docker network create msp-network
+      - docker-compose -f ../../infra/development/docker-compose.yml build --no-cache
+      - echo "Build complete!"
+
+  up:
+    desc: Start the backend container
+    cmds:
+      - echo "Starting the BACKEND..."
+      - docker-compose -f ../../infra/development/docker-compose.yml up -d
+      - echo "Backend started!"
+
+  ssh-go:
+    desc: SSH to the backend container
+    cmds:
+      - echo "SSH to the BACKEND..."
+      - docker exec -it {{.BACKEND_CONTAINER}} sh
+
+  ssh-mysql:
+    desc: SSH to the MySQL container
+    cmds:
+      - echo "SSH to the MYSQL..."
+      - docker exec -it {{.MYSQL_CONTAINER}} sh
+
+  swagger:
+    desc: Generate Swagger documentation
+    cmds:
+      - echo "Generating Swagger documentation..."
+      - docker exec -it {{.BACKEND_CONTAINER}} swag init -g src/main.go
+      - echo "Swagger documentation generated!"
+
+  fmt:
+    desc: Format code
+    cmds:
+      - echo "Formatting code..."
+      - docker exec -it {{.BACKEND_CONTAINER}} go fmt ./...
+      - echo "Formatting complete!"
+
+  migrate-create:
+    desc: Create a new database migration
+    interactive: true
+    cmds:
+      - echo "Running create Migrations..."
+      - |
+        read -p "Enter migration name: " name
+        docker exec -it {{.BACKEND_CONTAINER}} goose -dir ./database/migrations create $name sql
+      - echo "Create Migrations complete!"
+
+  migrate-up:
+    desc: Run database migrations up
+    cmds:
+      - echo "Running database migrations up..."
+      - docker exec -it {{.BACKEND_CONTAINER}} sh /app/ops/scripts/db_setup.sh migrate:up
+      - echo "Migrations complete!"
+
+  migrate-down:
+    desc: Run database migrations down
+    cmds:
+      - echo "Running database migrations down..."
+      - docker exec -it {{.BACKEND_CONTAINER}} sh /app/ops/scripts/db_setup.sh migrate:down
+      - echo "Migrations complete!"
+
+  seed-master:
+    desc: Run database seed-master
+    cmds:
+      - echo "Running seeds master..."
+      - docker exec -it {{.BACKEND_CONTAINER}} sh /app/ops/scripts/db_setup.sh seed-master:up
+      - echo "Run seeds master complete!"
+
+  shell:
+    desc: Run shell in the container
+    cmds:
+      - echo "Running Shell..."
+      - docker exec -it {{.BACKEND_CONTAINER}} go run /app/cmd/scheduled-batch/main.go {{.CLI_ARGS}}
+      - echo "Running Shell complete!"
+
+  generate-mock:
+    desc: Generate mock for interfaces
+    cmds:
+      - echo "Generating mock..."
+      - docker exec -it {{.BACKEND_CONTAINER}} sh -c "mockery --case=underscore --dir=internal/ --output=tests/mocks/ --all"
+      - echo "Mock generation complete!"
+
+  lint:
+    desc: Run golangci-lint checks
+    cmds:
+      - echo "Running golangci-lint..."
+      - docker exec -it {{.BACKEND_CONTAINER}} golangci-lint run ./...
+      - echo "Lint check complete!"
+
+  lint-fix:
+    desc: Fix lint issues automatically where possible
+    cmds:
+      - echo "Running golangci-lint with autofix..."
+      - docker exec -it {{.BACKEND_CONTAINER}} golangci-lint run --fix ./...
+      - echo "Lint fix complete!"
+
+  modernize-fix:
+    desc: Run modernize checks & fix
+    cmds:
+      - echo "Running modernize..."
+      - docker exec -it {{.BACKEND_CONTAINER}} go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.18.1 -fix -test ./...
+      - echo "Modernize check complete!"
+
+  docs-generate:
+    desc: Generate documentation
+    cmds:
+      - echo "Generating documentation..."
+      - ./ops/scripts/generate-oapi.sh
+      - echo "Documentation generated!"
+
+  test:
+    desc: Run tests with coverage
+    cmds:
+      - chmod +x ./ops/scripts/switch-env.sh
+      - chmod +x ./ops/scripts/test.sh
+      - ./ops/scripts/test.sh

@@ -1,0 +1,51 @@
+type: object
+required:
+  - id
+  - payment_provider_id
+  - payment_merchant_id
+  - merchant_name
+  - shop_id
+  - shop_url
+  - created_at
+  - updated_at
+properties:
+  id:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      json: "id"
+    example: 1
+  payment_provider_id:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      json: "payment_provider_id"
+    example: 101
+  payment_merchant_id:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "payment_merchant_id"
+    example: "pm_12345"
+  merchant_name:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "merchant_name"
+    example: "Example Store"
+  shop_id:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      json: "shop_id"
+    example: 10
+  shop_url:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "shop_url"
+    example: "https://shop.example.com"
+  created_at:
+    type: string
+    format: date-time
+    x-oapi-codegen-extra-tags:
+      json: "created_at"
+  updated_at:
+    type: string
+    format: date-time
+    x-oapi-codegen-extra-tags:
+      json: "updated_at"

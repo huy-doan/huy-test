@@ -1,0 +1,14 @@
+type: object
+required:
+  - name
+  - code
+properties:
+  name:
+    type: string
+    example: "Example Store"
+  code:
+    type: string
+    example: "example_store"
+  is_active:
+    type: boolean
+    example: true

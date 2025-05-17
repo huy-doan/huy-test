@@ -1,0 +1,12 @@
+type: object
+properties:
+  can_resend:
+    type: boolean
+    example: true
+  remaining_time:
+    type: integer
+    example: 30
+  expires_in:
+    type: integer
+    example: 30
+

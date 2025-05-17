@@ -1,0 +1,40 @@
+get:
+  tags:
+    - merchant
+  summary: List merchants
+  description: Get a paginated list of merchants with optional filters
+  operationId: listMerchants
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/MerchantListRequest'
+
+  responses:
+    '200':
+      description: List of merchants
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MerchantListResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

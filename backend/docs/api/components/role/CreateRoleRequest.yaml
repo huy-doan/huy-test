@@ -1,0 +1,18 @@
+type: object
+required:
+  - name
+  - permission_ids
+properties:
+  name:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "name"
+      binding: "required"
+    example: "Manager"
+  permission_ids:
+    type: array
+    items:
+      type: integer
+    x-oapi-codegen-extra-tags:
+      json: "permission_ids"
+    example: [1, 2, 3]

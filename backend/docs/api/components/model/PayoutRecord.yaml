@@ -1,0 +1,25 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 1
+  payout_id:
+    type: integer
+    example: 123
+  amount:
+    type: number
+    format: float
+    example: 1500.00
+  status:
+    type: string
+    example: "completed"
+    enum: [pending, processing, completed, failed]
+  transaction_id:
+    type: string
+    example: "txn_12345abcdef"
+  created_at:
+    type: string
+    format: date-time
+  updated_at:
+    type: string
+    format: date-time

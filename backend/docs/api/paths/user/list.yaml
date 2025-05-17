@@ -1,0 +1,39 @@
+get:
+  tags:
+    - user
+  summary: List users
+  description: Get a paginated list of users with optional filters
+  operationId: listUsers
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/UserListRequest'
+  responses:
+    '200':
+      description: List of users
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserListResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

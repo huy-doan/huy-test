@@ -1,0 +1,101 @@
+services:
+  mysql:
+    container_name: "makeshop_payment_mysql_1"
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    ports:
+      - "3338:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_DATABASE: msp-db-dev
+      MYSQL_ROOT_PASSWORD: rootpw
+      ENV: development
+      TZ: Asia/Tokyo
+    networks:
+      - msp-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-P",
+          "3306",
+          "--silent",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+  mailhog:
+    container_name: "makeshop_payment_mailhog_1"
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025" # SMTPサーバー
+      - "8025:8025" # Web UI
+    networks:
+      - msp-network
+    environment:
+      MH_STORAGE: maildir
+      MH_MAILDIR_PATH: /tmp
+    volumes:
+      - mailhog-data:/tmp
+    restart: unless-stopped
+  phpmyadmin:
+    container_name: "makeshop_payment_phpmyadmin_1"
+    image: nazarpc/phpmyadmin
+    ports:
+      - "3339:80"
+    links:
+      - mysql
+    networks:
+      - msp-network
+  backend:
+    container_name: "makeshop_payment_backend_1"
+    build:
+      context: ../../backend
+      target: dev
+      dockerfile: ../infra/development/backend/Dockerfile
+    env_file: # 環境変数
+      - ../../backend/ops/development/.env
+    environment:
+      TZ: Asia/Tokyo
+    tty: true
+    ports:
+      - "3011:8080"
+    volumes:
+      - ../../backend:/app
+    depends_on:
+      - mysql
+      - mailhog
+    networks:
+      - msp-network
+  front:
+    container_name: "makeshop_payment_front_1"
+    build:
+      context: ../../frontend
+      dockerfile: ../infra/development/frontend/Dockerfile
+    tty: true
+    volumes:
+      - ../../frontend:/app:delegated
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - msp-network
+    depends_on:
+      - backend
+networks:
+  msp-network:
+    external: true
+
+volumes:
+  mysql-data:
+  mailhog-data:

@@ -1,0 +1,2673 @@
+openapi: 3.0.3
+info:
+  title: Makeshop Payment API
+  description: API for Makeshop payment system
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: /api/v1
+    description: Default server
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login user
+      description: Authenticate user and return JWT token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/LoginResponse"
+                  - $ref: "#/components/schemas/RequiredTwoFaResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Logout user
+      description: Invalidate user token
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+  /auth/me:
+    get:
+      tags:
+        - auth
+      summary: Get current user
+      description: Get the current authenticated user's information
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User information retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      mfa_type:
+                        $ref: "#/components/schemas/MfaType"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+
+  /auth/verify:
+    post:
+      tags:
+        - auth
+      summary: Verify MFA token
+      description: Verify MFA token for authentication
+      operationId: verifyMFA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyMFARequest"
+      responses:
+        "200":
+          description: Verification successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyMFAResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+
+  /auth/resend-code:
+    post:
+      tags:
+        - auth
+      summary: Resend MFA code
+      description: Resend MFA verification code
+      operationId: resendCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResendCodeRequest"
+      responses:
+        "200":
+          description: Code resent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResendCodeResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+
+  /auth/change-password:
+    post:
+      tags:
+        - auth
+      summary: Change user password
+      description: Change the currently logged in user's password
+      operationId: changePassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad Request - Invalid password format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized - Current password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+  /auth/update-profile:
+    put:
+      tags:
+        - auth
+      summary: Update user profile
+      description: Update the currently logged in user's profile information
+      operationId: updateProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Profile updated successfully"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+        "400":
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden - User does not have permission to update profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+
+  /users:
+    get:
+      tags:
+        - user
+      summary: List users
+      description: Get a paginated list of users with optional filters
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserListRequest"
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /users/{id}:
+    get:
+      tags:
+        - user
+      summary: Get user details
+      description: Get detailed information about a specific user
+      operationId: getUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /users/create:
+    post:
+      tags:
+        - user
+      summary: Create new user
+      description: Create a new user in the system with specified role
+      operationId: createUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User created successfully"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /users/{id}/update:
+    put:
+      tags:
+        - user
+      summary: Update user
+      description: Update an existing user's information
+      operationId: updateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: User ID to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User updated successfully"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /users/{id}/delete:
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      description: Delete an existing user from the system
+      operationId: deleteUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: User ID to delete
+      responses:
+        "200":
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /roles:
+    get:
+      tags:
+        - role
+      summary: List roles
+      description: Get a list of user roles with associated permissions
+      operationId: listRoles
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Roles retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      roles:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Role"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /roles/{id}:
+    get:
+      tags:
+        - role
+      summary: Get role details
+      description: Get detailed information about a specific role including permissions
+      operationId: getRole
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Role ID
+      responses:
+        "200":
+          description: Role details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Role retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      role:
+                        $ref: "#/components/schemas/Role"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /roles/create:
+    post:
+      tags:
+        - role
+      summary: Create new role
+      description: Create a new role with optional permission assignments
+      operationId: createRole
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoleRequest"
+      responses:
+        "201":
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Role created successfully"
+                  data:
+                    type: object
+                    properties:
+                      role:
+                        $ref: "#/components/schemas/Role"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /roles/{id}/update:
+    put:
+      tags:
+        - role
+      summary: Update role
+      description: Update an existing role's information and permissions
+      operationId: updateRole
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Role ID to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoleRequest"
+      responses:
+        "200":
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Role updated successfully"
+                  data:
+                    type: object
+                    properties:
+                      role:
+                        $ref: "#/components/schemas/Role"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /roles/{id}/delete:
+    delete:
+      tags:
+        - role
+      summary: Delete role
+      description: Delete an existing role from the system
+      operationId: deleteRole
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Role ID to delete
+      responses:
+        "200":
+          description: Role deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /permissions:
+    get:
+      tags:
+        - permission
+      summary: List permissions
+      description: Get a list of all system permissions
+      operationId: listPermissions
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Permissions retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      permissions:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Permission"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /merchants:
+    get:
+      tags:
+        - merchant
+      summary: List merchants
+      description: Get a paginated list of merchants with optional filters
+      operationId: listMerchants
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MerchantListRequest"
+
+      responses:
+        "200":
+          description: List of merchants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Merchants retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      merchants:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Merchant"
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 35
+                          page:
+                            type: integer
+                            example: 1
+                          limit:
+                            type: integer
+                            example: 10
+                          pages:
+                            type: integer
+                            example: 4
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /merchants/{id}:
+    get:
+      tags:
+        - merchant
+      summary: Get merchant details
+      description: Get detailed information about a specific merchant
+      operationId: getMerchant
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Merchant ID
+      responses:
+        "200":
+          description: Merchant details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Merchant retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      merchant:
+                        $ref: "#/components/schemas/Merchant"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Merchant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /merchants/create:
+    post:
+      tags:
+        - merchant
+      summary: Create new merchant
+      description: Create a new merchant in the system
+      operationId: createMerchant
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMerchantRequest"
+      responses:
+        "201":
+          description: Merchant created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Merchant created successfully"
+                  data:
+                    type: object
+                    properties:
+                      merchant:
+                        $ref: "#/components/schemas/Merchant"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /merchants/{id}/update:
+    put:
+      tags:
+        - merchant
+      summary: Update merchant
+      description: Update an existing merchant's information
+      operationId: updateMerchant
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Merchant ID to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMerchantRequest"
+      responses:
+        "200":
+          description: Merchant updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Merchant updated successfully"
+                  data:
+                    type: object
+                    properties:
+                      merchant:
+                        $ref: "#/components/schemas/Merchant"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Merchant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /merchants/{id}/delete:
+    delete:
+      tags:
+        - merchant
+      summary: Delete merchant
+      description: Delete an existing merchant from the system
+      operationId: deleteMerchant
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Merchant ID to delete
+      responses:
+        "200":
+          description: Merchant deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Merchant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /payment-providers:
+    get:
+      tags:
+        - payment-provider
+      summary: List payment providers
+      description: Get a list of available payment providers
+      operationId: listPaymentProviders
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: is_active
+          in: query
+          schema:
+            type: boolean
+          description: Filter by active status
+      responses:
+        "200":
+          description: List of payment providers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Payment providers retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      payment_providers:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PaymentProvider"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /payouts:
+    get:
+      tags:
+        - payout
+      summary: List payouts
+      description: Get a paginated list of payouts with optional filters
+      operationId: listPayouts
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayoutListRequest"
+      responses:
+        "200":
+          description: List of payouts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /payouts/{id}:
+    get:
+      tags:
+        - payout
+      summary: Get payout details
+      description: Get detailed information about a specific payout
+      operationId: getPayout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Payout ID
+      responses:
+        "200":
+          description: Payout details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Payout retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      payout:
+                        $ref: "#/components/schemas/Payout"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Payout not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /payouts/create:
+    post:
+      tags:
+        - payout
+      summary: Create new payout
+      description: Create a new payout with optional payout records
+      operationId: createPayout
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePayoutRequest"
+      responses:
+        "201":
+          description: Payout created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Payout created successfully"
+                  data:
+                    type: object
+                    properties:
+                      payout:
+                        $ref: "#/components/schemas/Payout"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Merchant or payment provider not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /payouts/{id}/update:
+    put:
+      tags:
+        - payout
+      summary: Update payout
+      description: Update an existing payout's information and records
+      operationId: updatePayout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Payout ID to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePayoutRequest"
+      responses:
+        "200":
+          description: Payout updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Payout updated successfully"
+                  data:
+                    type: object
+                    properties:
+                      payout:
+                        $ref: "#/components/schemas/Payout"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Payout, merchant, or payment provider not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /payouts/{id}/delete:
+    delete:
+      tags:
+        - payout
+      summary: Delete payout
+      description: Delete an existing payout and associated records
+      operationId: deletePayout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Payout ID to delete
+      responses:
+        "200":
+          description: Payout deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "404":
+          description: Payout not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /audit-logs:
+    get:
+      tags:
+        - audit-log
+      summary: List audit logs
+      description: Get a paginated list of audit logs with optional filters
+      operationId: listAuditLogs
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuditLogListRequest"
+      responses:
+        "200":
+          description: List of audit logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Audit logs retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      audit_logs:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AuditLog"
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 150
+                          page:
+                            type: integer
+                            example: 1
+                          limit:
+                            type: integer
+                            example: 10
+                          pages:
+                            type: integer
+                            example: 15
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForbiddenError"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+# Components
+components:
+  schemas:
+    # Auth components
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          description: "User's email address"
+          x-oapi-codegen-extra-tags:
+            validate: "required,email"
+        password:
+          type: string
+          description: "User's password"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+      required:
+        - email
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: "#/components/schemas/User"
+
+    VerifyMFARequest:
+      type: object
+      required:
+        - email
+        - token
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+          x-oapi-codegen-extra-tags:
+            validate: "required,email"
+        token:
+          type: string
+          example: "Abcd@123456789"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+
+    VerifyMFAResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            user:
+              $ref: "#/components/schemas/User"
+
+    ResendCodeRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+          x-oapi-codegen-extra-tags:
+            validate: "required,email"
+        mfa_type:
+          type: integer
+          example: 1
+
+    ResendCodeResponse:
+      type: object
+      properties:
+        can_resend:
+          type: boolean
+          example: true
+        remaining_time:
+          type: integer
+          example: 30
+        expires_in:
+          type: integer
+          example: 30
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - current_password
+        - new_password
+      properties:
+        current_password:
+          type: string
+          format: password
+          example: "CurrentPassword123!"
+        new_password:
+          type: string
+          format: password
+          example: "NewStrongPassword456!"
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "John Smith"
+        email:
+          type: string
+          format: email
+          example: "john.smith@example.com"
+
+    RequiredTwoFaResponse:
+      type: object
+      properties:
+        requires_mfa:
+          type: boolean
+          example: true
+        user:
+          $ref: "#/components/schemas/User"
+        expires_in:
+          type: integer
+          example: 300
+        mfa_type:
+          type: string
+          example: "Email"
+
+    AuditLogListRequest:
+      type: object
+      required:
+        - page
+        - page_size
+        - sort_field
+        - sort_order
+        - created_at
+        - user_id
+        - description
+        - audit_log_type
+      properties:
+        page:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "page"
+          example: 1
+        page_size:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "page_size"
+            validate: "omitempty,min=1"
+          example: 10
+        sort_field:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sort_field"
+            validate: "omitempty"
+          example: created_at
+        sort_order:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sort_order"
+            validate: "omitempty,oneof=asc desc"
+          example: desc
+        created_at:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "created_at"
+            validate: "omitempty"
+          example: 2022-01-01
+        user_id:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "user_id"
+            validate: "omitempty"
+          example: 1
+        description:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "description"
+            validate: "omitempty"
+          example: description
+        audit_log_type:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "audit_log_type"
+            validate: "omitempty"
+          example: login
+
+    MerchantListRequest:
+      type: object
+      required:
+        - page
+        - page_size
+        - sort_field
+        - sort_order
+        - search
+        - review_status
+        - created_at_start
+        - created_at_end
+      properties:
+        page:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "page"
+          example: 1
+        page_size:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "page_size"
+            validate: "omitempty,min=1"
+          example: 10
+        sort_field:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sort_field"
+            validate: "omitempty"
+          example: created_at
+        sort_order:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sort_order"
+            validate: "omitempty,oneof=asc desc"
+          example: desc
+        search:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "search"
+            validate: "omitempty"
+          example: search
+        review_status:
+          type: array
+          items:
+            type: integer
+          x-oapi-codegen-extra-tags:
+            query: "review_status"
+            validate: "omitempty"
+          example: [1, 2]
+        created_at_start:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "created_at_start"
+            validate: "omitempty"
+          example: 2022-01-01
+        created_at_end:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "created_at_end"
+            validate: "omitempty"
+          example: 2022-01-01
+
+    UserListRequest:
+      type: object
+      required:
+        - page
+        - page_size
+        - search
+        - sort_field
+        - sort_order
+      properties:
+        page:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            json: "page"
+            query: "page"
+            default: "1"
+            validate: "min=1"
+          example: 1
+        page_size:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            json: "page_size"
+            query: "page_size"
+            default: "10"
+            validate: "min=1"
+          example: 10
+        search:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "search"
+            query: "search"
+            validate: "omitempty,max=255"
+          example: ""
+        role_id:
+          type: integer
+          nullable: true
+          x-oapi-codegen-extra-tags:
+            json: "role_id"
+            query: "role_id"
+            validate: "omitempty,min=1"
+          example: 2
+        sort_field:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "sort_field"
+            query: "sort_field"
+            validate: "omitempty"
+          example: "created_at"
+        sort_order:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "sort_order"
+            query: "sort_order"
+            validate: "omitempty,oneof=asc desc"
+          enum: [asc, desc]
+          example: "desc"
+
+    UserListResponse:
+      type: object
+      required:
+        - users
+        - page
+        - page_size
+        - total
+        - total_pages
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        page:
+          type: integer
+          example: 1
+        page_size:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        total_pages:
+          type: integer
+          example: 10
+
+    # User components
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - password
+        - full_name
+        - role_id
+        - enabled_mfa
+      properties:
+        email:
+          type: string
+          format: email
+          x-oapi-codegen-extra-tags:
+            json: "email"
+            validate: "required,email"
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          x-oapi-codegen-extra-tags:
+            json: "password"
+            validate: "required,min=6"
+          example: "StrongPassword123!"
+        full_name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "full_name"
+            validate: "required"
+          example: "John Doe"
+        role_id:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            json: "role_id"
+            validate: "required"
+          example: 2
+        enabled_mfa:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: "enabled_mfa"
+          example: true
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          x-oapi-codegen-extra-tags:
+            json: "email,omitempty"
+            validate: "omitempty,email"
+          example: "updated@example.com"
+        password:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "password,omitempty"
+            validate: "omitempty,min=6"
+          example: "newpassword"
+        full_name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "full_name,omitempty"
+            validate: "omitempty"
+          example: "John Updated"
+        role_id:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            json: "role_id,omitempty"
+            validate: "omitempty"
+          example: 3
+        enabled_mfa:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: "enabled_mfa,omitempty"
+          example: true
+
+    # Role components
+    CreateRoleRequest:
+      type: object
+      required:
+        - name
+        - permission_ids
+      properties:
+        name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "name"
+            binding: "required"
+          example: "Manager"
+        permission_ids:
+          type: array
+          items:
+            type: integer
+          x-oapi-codegen-extra-tags:
+            json: "permission_ids"
+          example: [1, 2, 3]
+
+    UpdateRoleRequest:
+      type: object
+      required:
+        - name
+        - permission_ids
+      properties:
+        name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "name"
+            binding: "required"
+          example: "Manager"
+        description:
+          type: string
+          example: "System manager with updated permissions"
+        permission_ids:
+          type: array
+          items:
+            type: integer
+          x-oapi-codegen-extra-tags:
+            json: "permission_ids"
+          example: [1, 2, 3, 5, 8, 10, 12]
+
+    # Merchant components
+    CreateMerchantRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          example: "Example Store"
+        code:
+          type: string
+          example: "example_store"
+        is_active:
+          type: boolean
+          example: true
+
+    UpdateMerchantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Updated Store"
+        code:
+          type: string
+          example: "updated_store"
+        is_active:
+          type: boolean
+          example: true
+
+    # Payout components
+    PayoutListRequest:
+      type: object
+      required:
+        - page
+        - page_size
+        - sort_field
+        - sort_order
+        - created_at
+        - sending_date
+        - sent_date
+        - payout_status
+      properties:
+        page:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "page"
+            json: "page"
+            validate: "omitempty,min=1"
+          example: 1
+          description: Page number for pagination
+        page_size:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "page_size"
+            json: "page_size"
+            validate: "omitempty,min=1"
+          example: 10
+          description: Number of items per page
+        sort_field:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sort_field"
+            json: "sort_field"
+          example: "created_at"
+          description: Field to sort results by
+        sort_order:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sort_order"
+            json: "sort_order"
+            validate: "omitempty,oneof=asc desc"
+          enum: [asc, desc]
+          example: "desc"
+          description: Sort direction (ascending or descending)
+        created_at:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "created_at"
+            validate: "omitempty"
+          example: "2023-01-01"
+          description: Filter by creation date
+        sending_date:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sending_date"
+            validate: "omitempty"
+          example: "2023-01-01"
+          description: Filter by scheduled sending date
+        sent_date:
+          type: string
+          x-oapi-codegen-extra-tags:
+            query: "sent_date"
+            validate: "omitempty"
+          example: "2023-01-01"
+          description: Filter by actual sent date
+        payout_status:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            query: "payout_status"
+            validate: "omitempty"
+          example: 1
+          description: Filter by payout status
+
+    PayoutListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Payouts retrieved successfully"
+        data:
+          type: object
+          properties:
+            payouts:
+              type: array
+              items:
+                $ref: "#/components/schemas/Payout"
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  example: 42
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 10
+                pages:
+                  type: integer
+                  example: 5
+
+    CreatePayoutRequest:
+      type: object
+      required:
+        - merchant_id
+        - payment_provider_id
+        - total_amount
+      properties:
+        merchant_id:
+          type: integer
+          example: 5
+        payment_provider_id:
+          type: integer
+          example: 2
+        total_amount:
+          type: number
+          format: float
+          example: 5000.00
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              amount:
+                type: number
+                format: float
+                example: 2500.00
+              transaction_id:
+                type: string
+                example: "tx_123abc456"
+
+    UpdatePayoutRequest:
+      type: object
+      properties:
+        merchant_id:
+          type: integer
+          example: 5
+        payment_provider_id:
+          type: integer
+          example: 2
+        total_amount:
+          type: number
+          format: float
+          example: 5500.00
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          example: "completed"
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID of existing record (for updates)
+                example: 42
+              amount:
+                type: number
+                format: float
+                example: 2750.00
+              transaction_id:
+                type: string
+                example: "tx_updated456def"
+              status:
+                type: string
+                enum: [pending, processing, completed, failed]
+                example: "completed"
+
+    # Model components
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          example: "user@example.com"
+        full_name:
+          type: string
+          example: "John Doe"
+        enabled_mfa:
+          type: boolean
+          example: true
+        role:
+          $ref: "#/components/schemas/Role"
+        mfa_type:
+          $ref: "#/components/schemas/MfaType"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+
+    Role:
+      type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: "Administrator"
+
+    Permission:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "View Dashboard"
+        code:
+          type: string
+          example: "view_dashboard"
+        description:
+          type: string
+          example: "Permission to view dashboard"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Merchant:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Example Store"
+        code:
+          type: string
+          example: "example_store"
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PaymentProvider:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Stripe"
+        code:
+          type: string
+          example: "stripe"
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Payout:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        merchant_id:
+          type: integer
+          example: 5
+        total_amount:
+          type: number
+          format: float
+          example: 5000.00
+        status:
+          type: string
+          example: "completed"
+          enum: [pending, processing, completed, failed]
+        payment_provider_id:
+          type: integer
+          example: 2
+        payment_provider:
+          $ref: "#/components/schemas/PaymentProvider"
+        merchant:
+          $ref: "#/components/schemas/Merchant"
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayoutRecord"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PayoutRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        payout_id:
+          type: integer
+          example: 123
+        amount:
+          type: number
+          format: float
+          example: 1500.00
+        status:
+          type: string
+          example: "completed"
+          enum: [pending, processing, completed, failed]
+        transaction_id:
+          type: string
+          example: "txn_12345abcdef"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 42
+        audit_log_type_id:
+          type: integer
+          example: 2
+        audit_log_type:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 2
+            name:
+              type: string
+              example: "Login"
+            code:
+              type: string
+              example: "login"
+        message:
+          type: string
+          example: "User login successful"
+          ip_address:
+            type: string
+            example: "192.168.1.1"
+          user_agent:
+            type: string
+            example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          created_at:
+            type: string
+            format: date-time
+          updated_at:
+            type: string
+            format: date-time
+
+    AuditLogType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Login"
+        code:
+          type: string
+          example: "login"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    MfaType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Email"
+        is_active:
+          type: boolean
+
+    # Common components
+    ValidationError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Validation error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            type:
+              type: string
+              example: "VALIDATION"
+            details:
+              type: object
+              additionalProperties: true
+
+    NotFoundError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Not Found access"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "NOT_FOUND"
+            type:
+              type: string
+              example: "NOT_FOUND"
+            details:
+              type: object
+              additionalProperties: true
+
+    BadRequestError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "BadRequest error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "BAD_REQUEST_ERROR"
+            type:
+              type: string
+              example: "BAD_REQUEST"
+            details:
+              type: object
+              additionalProperties: true
+
+    UnauthorizedError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Unauthorized access"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            type:
+              type: string
+              example: "AUTHORIZATION"
+            details:
+              type: object
+              additionalProperties: true
+
+    ForbiddenError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Unauthorized access"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "UNAUTHORIZED"
+            type:
+              type: string
+              example: "AUTHORIZATION"
+            details:
+              type: object
+              additionalProperties: true
+
+    InternalServerError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Internal server error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "INTERNAL_SERVER_ERROR"
+            type:
+              type: string
+              example: "INTERNAL_SERVER"
+            details:
+              type: object
+              additionalProperties: true
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Validation error"
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            type:
+              type: string
+              example: "VALIDATION"
+            details:
+              type: object
+              additionalProperties: true
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          type: object
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

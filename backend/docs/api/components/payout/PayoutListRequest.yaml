@@ -1,0 +1,71 @@
+type: object
+required:
+  - page
+  - page_size
+  - sort_field
+  - sort_order
+  - created_at
+  - sending_date
+  - sent_date
+  - payout_status
+properties:
+  page:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "page"
+      json: "page"
+      validate: "omitempty,min=1"
+    example: 1
+    description: Page number for pagination
+  page_size:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "page_size"
+      json: "page_size"
+      validate: "omitempty,min=1"
+    example: 10
+    description: Number of items per page
+  sort_field:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sort_field"
+      json: "sort_field"
+    example: "created_at"
+    description: Field to sort results by
+  sort_order:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sort_order"
+      json: "sort_order"
+      validate: "omitempty,oneof=asc desc"
+    enum: [asc, desc]
+    example: "desc"
+    description: Sort direction (ascending or descending)
+  created_at:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "created_at"
+      validate: "omitempty"
+    example: "2023-01-01"
+    description: Filter by creation date
+  sending_date:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sending_date"
+      validate: "omitempty"
+    example: "2023-01-01"
+    description: Filter by scheduled sending date
+  sent_date:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sent_date"
+      validate: "omitempty"
+    example: "2023-01-01"
+    description: Filter by actual sent date
+  payout_status:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "payout_status"
+      validate: "omitempty"
+    example: 1
+    description: Filter by payout status

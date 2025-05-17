@@ -1,0 +1,35 @@
+get:
+  tags:
+    - auth
+  summary: Get current user
+  description: Get the current authenticated user's information
+  operationId: getCurrentUser
+  security:
+    - BearerAuth: []
+  responses:
+    '200':
+      description: User information retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "User information retrieved successfully"
+              data:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  mfa_type:
+                    $ref: '#/components/schemas/MfaType'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'

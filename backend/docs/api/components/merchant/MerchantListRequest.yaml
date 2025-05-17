@@ -1,0 +1,60 @@
+type: object
+required:
+  - page
+  - page_size
+  - sort_field
+  - sort_order
+  - search
+  - review_status
+  - created_at_start
+  - created_at_end
+properties:
+  page:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "page"
+    example: 1
+  page_size:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "page_size"
+      validate: "omitempty,min=1"
+    example: 10
+  sort_field:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sort_field"
+      validate: "omitempty"
+    example: created_at
+  sort_order:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sort_order"
+      validate: "omitempty,oneof=asc desc"
+    example: desc
+  search:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "search"
+      validate: "omitempty"
+    example: search
+  review_status:
+    type: array
+    items:
+      type: integer
+    x-oapi-codegen-extra-tags:
+      query: "review_status"
+      validate: "omitempty"
+    example: [1,2]
+  created_at_start:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "created_at_start"
+      validate: "omitempty"
+    example: 2022-01-01
+  created_at_end:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "created_at_end"
+      validate: "omitempty"
+    example: 2022-01-01

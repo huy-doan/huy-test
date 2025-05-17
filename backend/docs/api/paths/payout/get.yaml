@@ -1,0 +1,58 @@
+get:
+  tags:
+    - payout
+  summary: Get payout details
+  description: Get detailed information about a specific payout
+  operationId: getPayout
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Payout ID
+  responses:
+    '200':
+      description: Payout details
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Payout retrieved successfully"
+              data:
+                type: object
+                properties:
+                  payout:
+                    $ref: '#/components/schemas/Payout'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '404':
+      description: Payout not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

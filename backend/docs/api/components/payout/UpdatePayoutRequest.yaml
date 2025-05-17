@@ -1,0 +1,36 @@
+type: object
+properties:
+  merchant_id:
+    type: integer
+    example: 5
+  payment_provider_id:
+    type: integer
+    example: 2
+  total_amount:
+    type: number
+    format: float
+    example: 5500.00
+  status:
+    type: string
+    enum: [pending, processing, completed, failed]
+    example: "completed"
+  records:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID of existing record (for updates)
+          example: 42
+        amount:
+          type: number
+          format: float
+          example: 2750.00
+        transaction_id:
+          type: string
+          example: "tx_updated456def"
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          example: "completed"

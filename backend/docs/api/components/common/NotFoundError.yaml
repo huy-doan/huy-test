@@ -1,0 +1,17 @@
+type: object
+properties:
+  success:
+    type: boolean
+    example: false
+  message:
+    type: string
+    example: "Not Found"
+  error:
+    type: object
+    properties:
+      code:
+        type: string
+        example: "NOT_FOUND"
+      type:
+        type: string
+        example: "NOT_FOUND"

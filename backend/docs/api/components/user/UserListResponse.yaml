@@ -1,0 +1,24 @@
+type: object
+required:
+  - users
+  - page
+  - page_size
+  - total
+  - total_pages
+properties:
+  users:
+    type: array
+    items:
+      $ref: '#/components/schemas/User'
+  page:
+    type: integer
+    example: 1
+  page_size:
+    type: integer
+    example: 10
+  total:
+    type: integer
+    example: 100
+  total_pages:
+    type: integer
+    example: 10

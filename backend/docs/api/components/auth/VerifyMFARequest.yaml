@@ -1,0 +1,16 @@
+type: object
+required:
+  - email
+  - token
+properties:
+  email:
+    type: string
+    format: email
+    example: "user@example.com"
+    x-oapi-codegen-extra-tags:
+      validate: "required,email"
+  token:
+    type: string
+    example: "Abcd@123456789"
+    x-oapi-codegen-extra-tags:
+      validate: "required"

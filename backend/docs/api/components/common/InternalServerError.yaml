@@ -1,0 +1,17 @@
+type: object
+properties:
+  success:
+    type: boolean
+    example: false
+  message:
+    type: string
+    example: "Internal server error"
+  error:
+    type: object
+    properties:
+      code:
+        type: string
+        example: "INTERNAL_SERVER_ERROR"
+      type:
+        type: string
+        example: "INTERNAL_SERVER"

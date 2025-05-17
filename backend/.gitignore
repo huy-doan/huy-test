@@ -1,0 +1,48 @@
+# If you prefer the allow list template instead of the deny list, see community template:
+# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+#
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# As you like..
+.idea/
+.DS_Store/
+general.log
+tmp/
+__debug_bin
+*.log
+
+# vscode
+**/.vscode/**
+
+# Win
+Thumbs.db
+
+# Mac
+.DS_Store
+
+# Vim
+*.sw?
+*~
+
+# direnv
+.envrc
+
+# Eclipse
+.project
+.settings
+.buildpath
+
+# Go workspace file
+go.work
+
+# docker-sync
+.unison*
+.docker-sync
+
+# coverarge
+**/coverage*

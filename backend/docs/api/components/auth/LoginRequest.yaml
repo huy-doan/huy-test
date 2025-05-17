@@ -1,0 +1,15 @@
+type: object
+properties:
+  email:
+    type: string
+    description: "User's email address"
+    x-oapi-codegen-extra-tags:
+      validate: "required,email"
+  password:
+    type: string
+    description: "User's password"
+    x-oapi-codegen-extra-tags:
+      validate: "required"
+required:
+  - email
+  - password

@@ -1,0 +1,54 @@
+type: object
+required:
+  - page
+  - page_size
+  - search
+  - sort_field
+  - sort_order
+properties:
+  page:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      json: "page"
+      query: "page"
+      default: "1"
+      validate: "min=1"
+    example: 1
+  page_size:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      json: "page_size"
+      query: "page_size"
+      default: "10"
+      validate: "min=1"
+    example: 10
+  search:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "search"
+      query: "search"
+      validate: "omitempty,max=255"
+    example: ""
+  role_id:
+    type: integer
+    nullable: true
+    x-oapi-codegen-extra-tags:
+      json: "role_id"
+      query: "role_id"
+      validate: "omitempty,min=1"
+    example: 2
+  sort_field:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "sort_field"
+      query: "sort_field"
+      validate: "omitempty"
+    example: "created_at"
+  sort_order:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "sort_order"
+      query: "sort_order"
+      validate: "omitempty,oneof=asc desc"
+    enum: [asc, desc]
+    example: "desc"

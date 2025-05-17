@@ -1,0 +1,13 @@
+type: object
+required:
+  - email
+properties:
+  email:
+    type: string
+    format: email
+    example: "user@example.com"
+    x-oapi-codegen-extra-tags:
+      validate: "required,email"
+  mfa_type:
+    type: integer
+    example: 1

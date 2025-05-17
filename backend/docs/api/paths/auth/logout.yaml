@@ -1,0 +1,21 @@
+post:
+  tags:
+    - auth
+  summary: Logout user
+  description: Invalidate user token
+  operationId: logout
+  security:
+    - BearerAuth: []
+  responses:
+    '200':
+      description: Logout successful
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'

@@ -1,0 +1,31 @@
+post:
+  tags:
+    - auth
+  summary: Verify MFA token
+  description: Verify MFA token for authentication
+  operationId: verifyMFA
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/VerifyMFARequest'
+  responses:
+    '200':
+      description: Verification successful
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VerifyMFAResponse'
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestError'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'

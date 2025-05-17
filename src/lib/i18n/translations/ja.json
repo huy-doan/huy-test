@@ -1,0 +1,152 @@
+{
+  "account.locked": {
+    "id": "account.locked",
+    "translation": {
+      "ja": "アカウントがロックされています"
+    }
+  },
+  "account.temp_locked": {
+    "id": "account.temp_locked",
+    "translation": {
+      "ja": "アカウントが一時的にロックされています"
+    }
+  },
+  "account.perm_locked": {
+    "id": "account.perm_locked",
+    "translation": {
+      "ja": "アカウントが永久にロックされています"
+    }
+  },
+  "account.unauthorized": {
+    "id": "account.unauthorized",
+    "translation": {
+      "ja": "この操作を実行する権限がありません"
+    }
+  },
+  "login.success": {
+    "id": "login.success",
+    "translation": {
+      "ja": "ログインに成功しました"
+    }
+  },
+  "login.failed": {
+    "id": "login.failed",
+    "translation": {
+      "ja": "メールアドレスまたはパスワードが正しくありません"
+    }
+  },
+  "logout.success": {
+    "id": "logout.success",
+    "translation": {
+      "ja": "ログアウトに成功しました"
+    }
+  },
+  "login.attempts_remaining_temp_lock": {
+    "id": "login.attempts_remaining_temp_lock",
+    "translation": {
+      "ja": "ログインに失敗しました。アカウントが一時的にロックされるまで、あと%d回の試行が可能です。"
+    }
+  },
+  "login.attempts_remaining_perm_lock": {
+    "id": "login.attempts_remaining_perm_lock",
+    "translation": {
+      "ja": "あと%d回ログインを試みることができます"
+    }
+  },
+  "account.not_found": {
+    "id": "account.not_found",
+    "translation": {
+      "ja": "ユーザが見つかりません"
+    }
+  },
+  "common.error": {
+    "id": "common.error",
+    "translation": {
+      "ja": "エラーが発生しました"
+    }
+  },
+  "common.success": {
+    "id": "common.success",
+    "translation": {
+      "ja": "%s成功しました"
+    }
+  },
+  "email.already_exists": {
+    "id": "email.already_exists",
+    "translation": {
+      "ja": "このメールアドレスは既に使用されています"
+    }
+  },
+  "role.not_found": {
+    "id": "role.not_found",
+    "translation": {
+      "ja": "ロールが見つかりません"
+    }
+  },
+  "locked_account.locked_at_after_expired_at": {
+    "id": "locked_account.locked_at_after_expired_at",
+    "translation": {
+      "ja": "ロック日時は期限日時より前でなければなりません。"
+    }
+  },
+  "params.not_found": {
+    "id": "params.not_found",
+    "translation": {
+      "ja": "%sが見つかりません"
+    }
+  },
+  "params.invalid_number": {
+    "id": "params.invalid_number",
+    "translation": {
+      "ja": "%sが数値ではありません"
+    }
+  },
+  "params.must_be_positive": {
+    "id": "params.must_be_positive",
+    "translation": {
+      "ja": "%sが正の数でなければなりません"
+    }
+  },
+  "locked_account.expired_at_required": {
+    "id": "locked_account.expired_at_required",
+    "translation": {
+      "ja": "期限日時が必要です"
+    }
+  },
+  "password.current_incorrect": {
+    "id": "password.current_incorrect",
+    "translation": {
+      "ja": "現在のパスワードが正しくありません"
+    }
+  },
+  "password.reset_success": {
+    "id": "password.reset_success",
+    "translation": {
+      "ja": "パスワードをリセットしました"
+    }
+  },
+  "cannot_delete_self": {
+    "id": "cannot_delete_self",
+    "translation": {
+      "ja": "自分自身を削除することはできません"
+    }
+  },
+  "login.mfa_required": {
+    "id": "login.mfa_required",
+    "translation": {
+      "ja": "2FA認証が必要です"
+    }
+  },
+  "mfa.invalid_token": {
+    "id": "mfa.invalid_token",
+    "translation": {
+      "ja": "無効な2FAトークンです"
+    }
+  },
+  "mfa.expired_token": {
+    "id": "mfa.expired_token",
+    "translation": {
+      "ja": "2FAトークンが期限切れです"
+    }
+  }
+}

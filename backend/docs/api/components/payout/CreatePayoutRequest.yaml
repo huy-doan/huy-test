@@ -1,0 +1,28 @@
+type: object
+required:
+  - merchant_id
+  - payment_provider_id
+  - total_amount
+properties:
+  merchant_id:
+    type: integer
+    example: 5
+  payment_provider_id:
+    type: integer
+    example: 2
+  total_amount:
+    type: number
+    format: float
+    example: 5000.00
+  records:
+    type: array
+    items:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 2500.00
+        transaction_id:
+          type: string
+          example: "tx_123abc456"

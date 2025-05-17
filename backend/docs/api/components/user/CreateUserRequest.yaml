@@ -1,0 +1,39 @@
+type: object
+required:
+  - email
+  - password
+  - full_name
+  - role_id
+  - enabled_mfa
+properties:
+  email:
+    type: string
+    format: email
+    x-oapi-codegen-extra-tags:
+      json: "email"
+      validate: "required,email"
+    example: "user@example.com"
+  password:
+    type: string
+    format: password
+    x-oapi-codegen-extra-tags:
+      json: "password"
+      validate: "required,min=6"
+    example: "StrongPassword123!"
+  full_name:
+    type: string
+    x-oapi-codegen-extra-tags:
+      json: "full_name"
+      validate: "required"
+    example: "John Doe"
+  role_id:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      json: "role_id"
+      validate: "required"
+    example: 2
+  enabled_mfa:
+    type: boolean
+    x-oapi-codegen-extra-tags:
+      json: "enabled_mfa"
+    example: true

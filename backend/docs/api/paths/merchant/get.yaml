@@ -1,0 +1,58 @@
+get:
+  tags:
+    - merchant
+  summary: Get merchant details
+  description: Get detailed information about a specific merchant
+  operationId: getMerchant
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Merchant ID
+  responses:
+    '200':
+      description: Merchant details
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Merchant retrieved successfully"
+              data:
+                type: object
+                properties:
+                  merchant:
+                    $ref: '#/components/schemas/Merchant'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    '404':
+      description: Merchant not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerError'

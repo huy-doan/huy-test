@@ -1,0 +1,57 @@
+{
+  "account.locked": {
+    "id": "account.locked",
+    "translation": {
+      "en": "Account is locked"
+    }
+  },
+  "account.temp_locked": {
+    "id": "account.temp_locked",
+    "translation": {
+      "en": "Account is temporarily locked"
+    }
+  },
+  "account.perm_locked": {
+    "id": "account.perm_locked",
+    "translation": {
+      "en": "Account is permanently locked"
+    }
+  },
+  "account.unauthorized": {
+    "id": "account.unauthorized",
+    "translation": {
+      "en": "You don't have permission to perform this action"
+    }
+  },
+  "login.success": {
+    "id": "login.success",
+    "translation": {
+      "en": "Login successful"
+    }
+  },
+  "login.failed": {
+    "id": "login.failed",
+    "translation": {
+      "en": "Invalid email or password"
+    }
+  },
+  "logout.success": {
+    "id": "logout.success",
+    "translation": {
+      "en": "Logged out successfully"
+    }
+  },
+  "login.attempts_remaining_temp_lock": {
+    "id": "login.attempts_remaining_temp_lock",
+    "translation": {
+      "en": "Login failed. You have %d remaining attempts before your account is temporarily locked."
+    }
+  },
+  "login.attempts_remaining_perm_lock": {
+    "id": "login.attempts_remaining_perm_lock",
+    "translation": {
+      "en": "You have %d attempts remaining"
+    }
+  }
+} 
+

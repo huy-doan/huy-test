@@ -1,0 +1,13 @@
+type: object
+properties:
+  requires_mfa:
+    type: boolean
+    example: true
+  user:
+    $ref: '#/components/schemas/User'
+  expires_in:
+    type: integer
+    example: 300
+  mfa_type:
+    type: string
+    example: "Email"

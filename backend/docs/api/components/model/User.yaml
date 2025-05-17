@@ -1,0 +1,27 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 1
+  email:
+    type: string
+    example: "user@example.com"
+  full_name:
+    type: string
+    example: "John Doe"
+  enabled_mfa:
+    type: boolean
+    example: true
+  role:
+    $ref: '#/components/schemas/Role'
+  mfa_type:
+    $ref: '#/components/schemas/MfaType'
+  created_at:
+    type: string
+    format: date-time
+    example: "2023-01-01T00:00:00Z"
+  updated_at:
+    type: string
+    format: date-time
+    example: "2023-01-01T00:00:00Z"
+    

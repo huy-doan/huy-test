@@ -1,0 +1,20 @@
+type: object
+required:
+  - merchants
+  - page
+  - page_size
+  - total
+properties:
+  merchants:
+    type: array
+    items:
+      $ref: '#/components/schemas/Merchant'
+  page:
+    type: integer
+    example: 1
+  page_size:
+    type: integer
+    example: 10
+  total:
+    type: integer
+    example: 35

@@ -1,0 +1,58 @@
+type: object
+required:
+  - page
+  - page_size
+  - sort_field
+  - sort_order
+  - created_at
+  - user_id
+  - description
+  - audit_log_type
+properties:
+  page:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "page"
+    example: 1
+  page_size:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "page_size"
+      validate: "omitempty,min=1"
+    example: 10
+  sort_field:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sort_field"
+      validate: "omitempty"
+    example: created_at
+  sort_order:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "sort_order"
+      validate: "omitempty,oneof=asc desc"
+    example: desc
+  created_at:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "created_at"
+      validate: "omitempty"
+    example: 2022-01-01
+  user_id:
+    type: integer
+    x-oapi-codegen-extra-tags:
+      query: "user_id"
+      validate: "omitempty"
+    example: 1
+  description:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "description"
+      validate: "omitempty"
+    example: description
+  audit_log_type:
+    type: string
+    x-oapi-codegen-extra-tags:
+      query: "audit_log_type"
+      validate: "omitempty"
+    example: login

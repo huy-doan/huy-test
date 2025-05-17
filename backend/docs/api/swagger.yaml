@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: Makeshop Payment API
+  description: API for Makeshop payment system
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: /api/v1
+    description: Default server
+
+# Components
+components:
+  schemas:
+    # Auth components
+    LoginRequest:
+      $ref: '/app/docs/api/components/auth/LoginRequest.yaml'
+    LoginResponse:
+      $ref: '/app/docs/api/components/auth/LoginResponse.yaml'
+    VerifyMFARequest:
+      $ref: '/app/docs/api/components/auth/VerifyMFARequest.yaml'
+    VerifyMFAResponse:
+      $ref: '/app/docs/api/components/auth/VerifyMFAResponse.yaml'
+    ResendCodeRequest:
+      $ref: '/app/docs/api/components/auth/ResendCodeRequest.yaml'
+    ResendCodeResponse:
+      $ref: '/app/docs/api/components/auth/ResendCodeResponse.yaml'
+    ChangePasswordRequest:
+      $ref: '/app/docs/api/components/auth/ChangePasswordRequest.yaml'
+    UpdateProfileRequest:
+      $ref: '/app/docs/api/components/auth/UpdateProfileRequest.yaml'
+    RequiredTwoFaResponse:
+      $ref: '/app/docs/api/components/auth/RequiredTwoFaResponse.yaml'
+    AuditLogListRequest:
+      $ref: '/app/docs/api/components/auditlog/AuditLogListRequest.yaml'
+    MerchantListRequest:
+      $ref: '/app/docs/api/components/merchant/MerchantListRequest.yaml'
+    UserListRequest:
+      $ref: '/app/docs/api/components/user/UserListRequest.yaml'
+    UserListResponse:
+      $ref: '/app/docs/api/components/user/UserListResponse.yaml'
+    MerchantListResponse:
+      $ref: '/app/docs/api/components/merchant/MerchantListResponse.yaml'
+
+    # User components
+    CreateUserRequest:
+      $ref: '/app/docs/api/components/user/CreateUserRequest.yaml'
+    UpdateUserRequest:
+      $ref: '/app/docs/api/components/user/UpdateUserRequest.yaml'
+    
+    # Role components
+    CreateRoleRequest:
+      $ref: '/app/docs/api/components/role/CreateRoleRequest.yaml'
+    UpdateRoleRequest:
+      $ref: '/app/docs/api/components/role/UpdateRoleRequest.yaml'
+    
+    # Merchant components
+    CreateMerchantRequest:
+      $ref: '/app/docs/api/components/merchant/CreateMerchantRequest.yaml'
+    UpdateMerchantRequest:
+      $ref: '/app/docs/api/components/merchant/UpdateMerchantRequest.yaml'
+    
+    # Payout components
+    PayoutListRequest:
+      $ref: '/app/docs/api/components/payout/PayoutListRequest.yaml'
+    PayoutListResponse:
+      $ref: '/app/docs/api/components/payout/PayoutListResponse.yaml'
+    CreatePayoutRequest:
+      $ref: '/app/docs/api/components/payout/CreatePayoutRequest.yaml'
+    UpdatePayoutRequest:
+      $ref: '/app/docs/api/components/payout/UpdatePayoutRequest.yaml'
+
+    # Model components
+    User:
+      $ref: '/app/docs/api/components/model/User.yaml'
+    Role:
+      $ref: '/app/docs/api/components/model/Role.yaml'
+    Permission:
+      $ref: '/app/docs/api/components/model/Permission.yaml'
+    Merchant:
+      $ref: '/app/docs/api/components/model/Merchant.yaml'
+    PaymentProvider:
+      $ref: '/app/docs/api/components/model/PaymentProvider.yaml'
+    Payout:
+      $ref: '/app/docs/api/components/model/Payout.yaml'
+    PayoutRecord:
+      $ref: '/app/docs/api/components/model/PayoutRecord.yaml'
+    AuditLog:
+      $ref: '/app/docs/api/components/model/AuditLog.yaml'
+    AuditLogType:
+      $ref: '/app/docs/api/components/model/AuditLogType.yaml'
+    MfaType:
+      $ref: '/app/docs/api/components/model/MfaType.yaml'
+
+    # Common components
+    ValidationError:
+      $ref: '/app/docs/api/components/common/ValidationError.yaml'
+    NotFoundError:
+      $ref: '/app/docs/api/components/common/NotFoundError.yaml'
+    BadRequestError:
+      $ref: '/app/docs/api/components/common/BadRequestError.yaml'
+    UnauthorizedError:
+      $ref: '/app/docs/api/components/common/UnauthorizedError.yaml'
+    ForbiddenError:
+      $ref: '/app/docs/api/components/common/ForbiddenError.yaml'
+    InternalServerError:
+      $ref: '/app/docs/api/components/common/InternalServerError.yaml'
+    SuccessResponse:
+      $ref: '/app/docs/api/components/common/SuccessResponse.yaml'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /auth/login:
+    $ref: '/app/docs/api/paths/auth/login.yaml'
+  /auth/logout:
+    $ref: '/app/docs/api/paths/auth/logout.yaml'
+  /auth/me:
+    $ref: '/app/docs/api/paths/auth/me.yaml'
+  /auth/verify:
+    $ref: '/app/docs/api/paths/auth/verify.yaml'
+  /auth/resend-code:
+    $ref: '/app/docs/api/paths/auth/resend-code.yaml'
+
+  /admin/users:
+    $ref: '/app/docs/api/paths/user/list.yaml'
+  /admin/users/{id}:
+    $ref: '/app/docs/api/paths/user/get.yaml'
+  /admin/users/create:
+    $ref: '/app/docs/api/paths/user/create.yaml'
+  /admin/users/{id}/update:
+    $ref: '/app/docs/api/paths/user/update.yaml'
+  /admin/users/{id}/delete:
+    $ref: '/app/docs/api/paths/user/delete.yaml'
+
+  /admin/roles:
+    $ref: '/app/docs/api/paths/role/list.yaml'
+  /admin/roles/{id}:
+    $ref: '/app/docs/api/paths/role/get.yaml'
+  /admin/roles/create:
+    $ref: '/app/docs/api/paths/role/create.yaml'
+  /admin/roles/{id}/update:
+    $ref: '/app/docs/api/paths/role/update.yaml'
+  /admin/roles/{id}/delete:
+    $ref: '/app/docs/api/paths/role/delete.yaml'
+
+  /admin/permissions:
+    $ref: '/app/docs/api/paths/permission/list.yaml'
+
+  /admin/merchants:
+    $ref: '/app/docs/api/paths/merchant/list.yaml'
+  /admin/merchants/{id}:
+    $ref: '/app/docs/api/paths/merchant/get.yaml'
+
+  /admin/payment-providers:
+    $ref: '/app/docs/api/paths/payment-provider/list.yaml'
+  /admin/payouts:
+    $ref: '/app/docs/api/paths/payout/list.yaml'
+  /admin/payouts/{id}:
+    $ref: '/app/docs/api/paths/payout/get.yaml'
+  /admin/payouts/create:
+    $ref: '/app/docs/api/paths/payout/create.yaml'
+  /admin/payouts/{id}/update:
+    $ref: '/app/docs/api/paths/payout/update.yaml'
+  /admin/payouts/{id}/delete:
+    $ref: '/app/docs/api/paths/payout/delete.yaml'
+
+  # Audit log
+  /admin/audit-logs:
+    $ref: '/app/docs/api/paths/audit-log/list.yaml'

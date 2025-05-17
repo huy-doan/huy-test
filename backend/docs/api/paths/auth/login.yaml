@@ -1,0 +1,33 @@
+post:
+  tags:
+    - auth
+  summary: Login user
+  description: Authenticate user and return JWT token
+  operationId: login
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/LoginRequest'
+  responses:
+    '200':
+      description: Login successful
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/LoginResponse'
+              - $ref: '#/components/schemas/RequiredTwoFaResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestError'
